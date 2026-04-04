@@ -48,59 +48,67 @@ export class ZeroGLLMProvider implements LLMProvider {
       throw new Error("No 0G Compute services available");
     }
 
-    console.log(`[llm] Found ${services.length} services:`);
-    for (const svc of services) {
+    // Filter to chatbot services only
+    const chatServices = services.filter(
+      (s: any) => s.serviceType === "chatbot" || s.serviceType === "chat"
+    );
+    console.log(`[llm] Found ${services.length} services (${chatServices.length} chatbots):`);
+    for (const svc of chatServices) {
       console.log(`[llm]   ${svc.model} @ ${svc.provider}`);
     }
 
-    // Pick a chatbot service (prefer deepseek)
-    const preferred = services.find(
-      (s: any) => s.model?.includes("deepseek")
-    );
-    const chatService = preferred || services.find(
-      (s: any) => s.serviceType === "chatbot"
-    ) || services[0];
-
-    this.providerAddress = chatService.provider;
-    this.serviceEndpoint = chatService.url;
-    this.model = chatService.model;
-    console.log(`[llm] Selected: ${this.model} @ ${this.providerAddress}`);
+    if (chatServices.length === 0) {
+      throw new Error("No chatbot services available on 0G Compute");
+    }
 
     // Ensure ledger exists
     try {
       await this.broker.ledger.getLedger();
       console.log("[llm] Ledger exists");
     } catch {
-      console.log("[llm] Creating ledger...");
+      console.log("[llm] Creating ledger and depositing funds...");
       await this.broker.ledger.addLedger(1);
-      console.log("[llm] Ledger created, depositing funds...");
       await this.broker.ledger.depositFund(4);
-      console.log("[llm] Deposited 4 A0GI");
+      console.log("[llm] Ledger created with 4 A0GI");
     }
 
-    // Ensure provider account is funded
-    try {
-      const account = await this.broker.inference.getAccount(this.providerAddress);
-      console.log("[llm] Provider account exists");
-    } catch {
-      console.log("[llm] Funding provider account...");
+    // Try each chatbot service until one is reachable
+    for (const svc of chatServices) {
+      console.log(`[llm] Trying ${svc.model}...`);
+
+      // Ensure provider account is funded
       try {
-        await this.broker.ledger.transferFund(this.providerAddress, "inference", 4);
-        console.log("[llm] Provider account funded");
+        await this.broker.inference.getAccount(svc.provider);
+      } catch {
+        try {
+          await this.broker.ledger.transferFund(svc.provider, "inference", 1);
+          console.log(`[llm] Funded account for ${svc.model}`);
+        } catch (err: any) {
+          console.warn(`[llm] Could not fund ${svc.model}: ${err?.message?.slice(0, 80)}`);
+          continue;
+        }
+      }
+
+      // Try to acknowledge provider signer (verifies provider is online)
+      try {
+        await this.broker.inference.acknowledgeProviderSigner(svc.provider);
+        this.providerAddress = svc.provider;
+        this.serviceEndpoint = svc.url;
+        this.model = svc.model;
+        this.ready = true;
+        console.log(`[llm] Connected to ${this.model}`);
+        return;
       } catch (err: any) {
-        console.error("[llm] Failed to fund provider:", err?.message);
+        console.warn(`[llm] ${svc.model} unreachable: ${err?.message?.slice(0, 80)}`);
       }
     }
 
-    // Acknowledge provider signer (downloads provider's signing key)
-    try {
-      await this.broker.inference.acknowledgeProviderSigner(this.providerAddress);
-      console.log("[llm] Provider signer acknowledged");
-      this.ready = true;
-    } catch (err: any) {
-      console.warn("[llm] Could not acknowledge provider signer:", err?.message?.slice(0, 100));
-      console.warn("[llm] Provider may be offline. Will retry on first request.");
-    }
+    // No reachable provider -- pick first and hope it comes back
+    const fallback = chatServices[0];
+    this.providerAddress = fallback.provider;
+    this.serviceEndpoint = fallback.url;
+    this.model = fallback.model;
+    console.warn(`[llm] No reachable providers. Using ${this.model} as fallback (will retry on request).`);
   }
 
   formatMessages(messages: ChatMessage[]): OpenAIMessage[] {

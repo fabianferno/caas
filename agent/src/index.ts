@@ -106,10 +106,17 @@ async function main() {
 
       const channel = channels.find((c) => c.name === msg.channelName);
       if (channel) await channel.send(msg.conversationId, response);
-    } catch (err) {
+    } catch (err: any) {
       console.error("[agent] Error processing message:", err);
       const channel = channels.find((c) => c.name === msg.channelName);
-      if (channel) await channel.send(msg.conversationId, { text: "Sorry, I encountered an error processing your message." });
+      if (channel) {
+        const errMsg = err?.message || String(err);
+        let userMessage = "Sorry, I encountered an error processing your message.";
+        if (errMsg.includes("not reachable") || errMsg.includes("fetch failed")) {
+          userMessage = "The AI inference provider (0G Compute) is currently unavailable. The testnet providers may be offline. Please try again later.";
+        }
+        await channel.send(msg.conversationId, { text: userMessage });
+      }
     }
   }
 
