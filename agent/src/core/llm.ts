@@ -85,7 +85,7 @@ export class BedrockLLMProvider implements LLMProvider {
             content.push({
               toolUse: {
                 toolUseId: tc.id,
-                name: tc.name,
+                name: tc.name.replace(/-/g, "_"),
                 input: JSON.parse(tc.arguments),
               },
             });
@@ -116,20 +116,39 @@ export class BedrockLLMProvider implements LLMProvider {
       messages: converseMessages,
     };
 
+    // Bedrock requires tool names to match [a-zA-Z0-9_]+ (no hyphens)
+    const nameMap = new Map<string, string>(); // sanitized -> original
     if (tools && tools.length > 0) {
       input.toolConfig = {
-        tools: tools.map((t) => ({
-          toolSpec: {
-            name: t.function.name,
-            description: t.function.description,
-            inputSchema: { json: t.function.parameters },
-          },
-        })),
+        tools: tools.map((t) => {
+          const sanitized = t.function.name.replace(/-/g, "_");
+          nameMap.set(sanitized, t.function.name);
+          return {
+            toolSpec: {
+              name: sanitized,
+              description: t.function.description,
+              inputSchema: { json: t.function.parameters },
+            },
+          };
+        }),
       };
     }
 
-    const command = new ConverseCommand(input);
-    const response = await this.client.send(command);
+    let command = new ConverseCommand(input);
+    let response;
+    try {
+      response = await this.client.send(command);
+    } catch (err: any) {
+      if (err?.name === "ModelErrorException" && input.toolConfig) {
+        // Model can't handle tools -- retry without them
+        console.warn("[llm:bedrock] Tool use failed, retrying without tools");
+        delete input.toolConfig;
+        command = new ConverseCommand(input);
+        response = await this.client.send(command);
+      } else {
+        throw err;
+      }
+    }
 
     // Parse Bedrock response
     const output = response.output?.message;
@@ -143,16 +162,22 @@ export class BedrockLLMProvider implements LLMProvider {
         content = (content || "") + block.text;
       }
       if (block.toolUse) {
+        const originalName = nameMap.get(block.toolUse.name) || block.toolUse.name;
         toolCalls.push({
           id: block.toolUse.toolUseId,
-          name: block.toolUse.name,
+          name: originalName,
           arguments: JSON.stringify(block.toolUse.input),
         });
       }
     }
 
+    // Strip thinking tags that some models leak
+    if (content) {
+      content = content.replace(/<thinking>[\s\S]*?<\/thinking>\s*/g, "").trim();
+    }
+
     return {
-      content,
+      content: content || null,
       toolCalls: toolCalls.length > 0 ? toolCalls : null,
     };
   }

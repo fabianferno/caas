@@ -78,6 +78,14 @@ export class ZeroGMemory {
     }
   }
 
+  clearHistory(conversationId: string): void {
+    const conv = this.conversations.get(conversationId);
+    if (conv) {
+      conv.messages = [];
+      conv.updatedAt = new Date().toISOString();
+    }
+  }
+
   async loadFromStorage(): Promise<void> {
     console.log("[0g-storage] Loading conversation history...");
   }

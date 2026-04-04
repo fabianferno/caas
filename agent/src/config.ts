@@ -5,7 +5,10 @@ dotenv.config(); // fallback to .env
 
 export interface Config {
   agentPrivateKey: string;
+  deployerPrivateKey: string;
+  agentName: string;
   agentEnsName: string;
+  ethRpcUrl: string;
   rpcUrl: string;
   telegramBotToken?: string;
   discordBotToken?: string;
@@ -27,12 +30,17 @@ export function loadConfig(): Config {
   const key = process.env.AGENT_PRIVATE_KEY;
   if (!key) throw new Error("AGENT_PRIVATE_KEY is required");
 
-  const ensName = process.env.AGENT_ENS_NAME;
-  if (!ensName) throw new Error("AGENT_ENS_NAME is required");
+  const deployerKey = process.env.DEPLOYER_PRIVATE_KEY || key;
+
+  const agentName = process.env.AGENT_NAME || process.env.AGENT_ENS_NAME?.split(".")[0];
+  if (!agentName) throw new Error("AGENT_NAME is required");
 
   return {
     agentPrivateKey: key,
-    agentEnsName: ensName,
+    deployerPrivateKey: deployerKey,
+    agentName,
+    agentEnsName: `${agentName}.caas.eth`,
+    ethRpcUrl: process.env.ETH_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
     rpcUrl: process.env.RPC_URL || "https://evmrpc-testnet.0g.ai",
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || undefined,
     discordBotToken: process.env.DISCORD_BOT_TOKEN || undefined,

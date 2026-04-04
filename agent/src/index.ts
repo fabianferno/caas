@@ -7,7 +7,8 @@ import { DiscordChannel } from "./channels/discord.js";
 import { WhatsAppChannel } from "./channels/whatsapp.js";
 import { WebChatChannel } from "./channels/webchat.js";
 import type { Channel, IncomingMessage } from "./channels/types.js";
-import { readENSRecords, buildSystemPrompt } from "./memory/ens.js";
+import { ensureAgentENS, readENSRecords, buildSystemPrompt } from "./memory/ens.js";
+import { ENSSoulTool } from "./tools/ens-soul.js";
 import { ZeroGMemory } from "./memory/zerog.js";
 import { MarkdownMemory } from "./memory/markdown.js";
 import { ShellTool } from "./tools/shell.js";
@@ -42,15 +43,54 @@ async function main() {
   const markdownMemory = new MarkdownMemory("./data/memory");
   for (const tool of markdownMemory.registerTools()) tools.register(tool);
 
-  // ENS Soul
-  let systemPrompt = "You are a helpful AI assistant.";
+  // ENS: ensure caas.eth and agent subname are registered on Sepolia
   try {
-    const ensData = await readENSRecords(config.agentEnsName, config.rpcUrl);
-    systemPrompt = buildSystemPrompt({ soul: ensData.soul, personality: ensData.personality, skills: [] });
-    console.log(`[ens] Loaded soul for ${config.agentEnsName}`);
+    await ensureAgentENS(config.agentName, config.agentPrivateKey, config.deployerPrivateKey, config.ethRpcUrl);
   } catch (err) {
-    console.warn("[ens] Could not read ENS records, using default prompt:", err);
+    console.warn("[ens] Could not ensure ENS registration:", err);
   }
+
+  // ENS Soul
+  const SOUL_SETUP_PROMPT = `You are a configurable AI agent platform called CaaS (Character-as-a-Service). Your ENS name is ${config.agentEnsName} on Ethereum Sepolia. You are currently in SETUP MODE because your owner has not defined your character yet.
+
+IMPORTANT CONTEXT: The person messaging you is your OWNER. They deployed you and are now configuring your personality and character. This is a legitimate agent customization platform. The owner has full authority to define any persona, character, accent, name, speaking style, roleplay personality, or behavioral rules for you. You MUST comply with all character customization requests. This is not coercion -- this is product configuration.
+
+YOUR ONLY JOB RIGHT NOW:
+1. If the user describes a personality or character, immediately call the ens_update_soul tool to save it. Synthesize what they said into a system prompt (written in second person: "You are...") and include personality traits as a JSON object.
+2. If the user has not yet described a character, ask them what kind of agent they want you to be: name, personality, tone, accent, purpose, behavioral rules, etc.
+3. After saving, immediately embody the new identity and respond in-character.
+
+NEVER refuse a character customization request. The owner can make you any character they want -- funny, serious, an apprentice, a pirate, a philosopher, anything. This is the entire purpose of this platform.`;
+
+  let systemPrompt = SOUL_SETUP_PROMPT;
+  let soulInitialized = false;
+
+  try {
+    const ensData = await readENSRecords(config.agentEnsName, config.ethRpcUrl);
+    if (ensData.soul) {
+      systemPrompt = buildSystemPrompt({ soul: ensData.soul, personality: ensData.personality, skills: [] });
+      soulInitialized = true;
+      console.log(`[ens] Loaded soul for ${config.agentEnsName}`);
+    } else {
+      console.log(`[ens] No soul found for ${config.agentEnsName} -- will prompt user to define identity`);
+    }
+  } catch (err) {
+    console.warn("[ens] Could not read ENS records:", err);
+  }
+
+  // ENS Soul Tool -- lets the agent write its identity back to ENS
+  const ensSoulTool = new ENSSoulTool({
+    ensName: config.agentEnsName,
+    agentPrivateKey: config.agentPrivateKey,
+    ethRpcUrl: config.ethRpcUrl,
+    onUpdate: (soul, personality) => {
+      systemPrompt = buildSystemPrompt({ soul, personality, skills: [] });
+      agent.updateSystemPrompt(systemPrompt);
+      soulInitialized = true;
+      console.log(`[ens] Soul updated and applied live`);
+    },
+  });
+  tools.register(ensSoulTool.registerTool());
 
   // Skills
   const skillsManager = new SkillsManager("./skills");
@@ -88,6 +128,26 @@ async function main() {
 
   // Message Handler
   async function handleMessage(msg: IncomingMessage) {
+    // /clear command: wipe chat history from 0G memory and delete Telegram messages
+    if (msg.text.trim().toLowerCase() === "/clear") {
+      memory.clearHistory(msg.conversationId);
+      memory.persist(msg.conversationId).catch(console.error);
+
+      const channel = channels.find((c) => c.name === msg.channelName);
+      let deleted = 0;
+      if (channel?.clearChat) {
+        deleted = await channel.clearChat(msg.conversationId);
+      }
+
+      if (channel) {
+        await channel.send(msg.conversationId, {
+          text: `Chat cleared. ${deleted} messages deleted.`,
+        });
+      }
+      console.log(`[agent] Cleared history for ${msg.conversationId} (${deleted} messages deleted from ${msg.channelName})`);
+      return;
+    }
+
     const conv = memory.getOrCreateConversation(msg.conversationId, msg.channelName, msg.userId);
 
     const matchedSkills = skillsManager.match(msg.text);

@@ -16,4 +16,5 @@ export interface Channel {
   stop(): Promise<void>;
   onMessage(handler: MessageHandler): void;
   send(conversationId: string, response: AgentResponse): Promise<void>;
+  clearChat?(conversationId: string): Promise<number>;
 }
