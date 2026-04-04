@@ -83,6 +83,8 @@ Each Claw gets an ENS subname under `caas.eth` (e.g., `my-agent.caas.eth`). ENS 
 | `caas.channels` | `whatsapp,telegram,web,x402` | Active deployment channels |
 | `caas.owner` | World ID nullifier hash | Proof of human ownership (ZK) |
 | `caas.skills` | `0g://hash` | Pointer to skills manifest on 0G |
+| `caas.inft` | ERC-7857 token ID on 0G Chain | Links ENS identity to the INFT |
+| `caas.storage` | Merkle root of encrypted data | Verifiable pointer to 0G Storage blobs |
 | `caas.version` | `1.0.0` | Agent config version |
 | `avatar` | URL or IPFS hash | Agent avatar (standard ENS record) |
 | `description` | Free text | Agent bio (standard ENS record) |
@@ -111,6 +113,195 @@ LLM inference for each Claw runs on 0G's decentralized compute network:
 - **TEE-backed verification** — Every inference call is cryptographically verified. Users can prove their agent ran correctly.
 - **DePIN economics** — GPU providers earn rewards for serving inference. Costs are lower than centralized providers.
 - **Model flexibility** — Agents can use different models depending on the task (fast/cheap for chat, powerful for reasoning).
+
+---
+
+### 0G INFT: Agents as Intelligent NFTs (ERC-7857)
+
+Every Claw is minted as an **INFT (Intelligent Non-Fungible Token)** using the ERC-7857 standard on 0G Chain. Unlike traditional NFTs that store a static pointer to metadata, INFTs carry encrypted AI agent data — personality, skills, memory — that transfers securely with ownership.
+
+#### Why ERC-7857 over ERC-721
+
+Traditional NFT standards fail for AI agents because:
+
+1. **Static metadata** — ERC-721 uses publicly accessible metadata URIs. Agent configs are dynamic and often private.
+2. **Incomplete transfers** — ERC-721 only transfers the ownership identifier, not the underlying intelligence (soul.md, skills, memory).
+3. **No encryption** — Current standards have no built-in encryption for proprietary agent data.
+
+ERC-7857 solves all three with privacy-preserving metadata, secure transfers, and dynamic data management.
+
+#### ERC-7857 Core Interfaces
+
+The standard defines three Solidity interfaces:
+
+**1. IERC7857 — Main NFT Interface**
+
+```solidity
+interface IERC7857 {
+    // Transfer with metadata re-encryption
+    function iTransfer(
+        address _to,
+        uint256 _tokenId,
+        TransferValidityProof[] calldata _proofs
+    ) external;
+
+    // Clone token with same metadata (for templates)
+    function iClone(
+        address _to,
+        uint256 _tokenId,
+        TransferValidityProof[] calldata _proofs
+    ) external returns (uint256);
+
+    // Grant usage rights without ownership transfer
+    function authorizeUsage(uint256 _tokenId, address _user) external;
+
+    // Revoke usage rights
+    function revokeAuthorization(uint256 _tokenId, address _user) external;
+
+    // Delegate access check to an assistant (e.g., a TEE)
+    function delegateAccess(address _assistant) external;
+
+    // Standard ownership + approval
+    function ownerOf(uint256 _tokenId) external view returns (address);
+    function authorizedUsersOf(uint256 _tokenId) external view returns (address[] memory);
+    function approve(address _to, uint256 _tokenId) external;
+    function setApprovalForAll(address _operator, bool _approved) external;
+
+    // Events
+    event Transferred(address indexed from, address indexed to, uint256 indexed tokenId);
+    event Cloned(uint256 indexed originalTokenId, uint256 indexed newTokenId, address indexed to);
+    event Authorization(uint256 indexed tokenId, address indexed user);
+    event AuthorizationRevoked(uint256 indexed tokenId, address indexed user);
+    event PublishedSealedKey(uint256 indexed tokenId, bytes sealedKey);
+    event DelegateAccess(address indexed owner, address indexed assistant);
+}
+```
+
+**2. IERC7857Metadata — Intelligent Data**
+
+```solidity
+struct IntelligentData {
+    string dataDescription;   // e.g., "soul.md", "skills.json"
+    bytes32 dataHash;         // Hash of the encrypted data on 0G Storage
+}
+
+interface IERC7857Metadata {
+    function name() external view returns (string memory);
+    function symbol() external view returns (string memory);
+    function intelligentDataOf(uint256 _tokenId) external view returns (IntelligentData[] memory);
+}
+```
+
+**3. IERC7857DataVerifier — Transfer Proofs**
+
+```solidity
+enum OracleType { TEE, ZKP }
+
+struct AccessProof {
+    bytes32 oldDataHash;
+    bytes32 newDataHash;
+    bytes nonce;
+    bytes encryptedPubKey;
+    bytes proof;
+}
+
+struct OwnershipProof {
+    OracleType oracleType;
+    bytes32 oldDataHash;
+    bytes32 newDataHash;
+    bytes sealedKey;
+    bytes encryptedPubKey;
+    bytes nonce;
+    bytes proof;
+}
+
+struct TransferValidityProof {
+    AccessProof accessProof;
+    OwnershipProof ownershipProof;
+}
+
+interface IERC7857DataVerifier {
+    function verifyTransferValidity(
+        TransferValidityProof[] calldata _proofs
+    ) external returns (TransferValidityProofOutput[] memory);
+}
+```
+
+#### How CaaS Uses INFTs
+
+When a user deploys a Claw, the platform:
+
+1. **Encrypts** the agent's soul.md, skills manifest, and config with the owner's key
+2. **Stores** encrypted data on 0G Storage, getting back content hashes
+3. **Mints** an INFT via the `AgentNFT.mint()` function with `IntelligentData[]` containing:
+   - `{ dataDescription: "soul.md", dataHash: <0g-storage-hash> }`
+   - `{ dataDescription: "skills.json", dataHash: <0g-storage-hash> }`
+   - `{ dataDescription: "config.json", dataHash: <0g-storage-hash> }`
+4. **Registers** the ENS subname with `caas.inft` text record pointing to the token ID
+
+#### Secure Transfer Flow (6 Steps)
+
+When an INFT changes hands, the encrypted agent data is re-encrypted for the new owner via a TEE oracle:
+
+1. **Encrypt & Commit** — Metadata encrypted, hash commitment created as authenticity proof
+2. **Oracle Processing** — TEE oracle decrypts original metadata securely inside the enclave
+3. **Re-encrypt for Receiver** — Oracle generates new key, re-encrypts with receiver's public key
+4. **Secure Key Delivery** — New encryption key sealed with receiver's public key
+5. **Verify & Finalize** — Smart contract verifies: sender's access rights, oracle validation, receiver's signed acknowledgment
+6. **Access Granted** — Receiver decrypts the metadata key with their private key, gaining full access
+
+This means selling/transferring a Claw transfers the *actual agent intelligence*, not just a pointer.
+
+#### Clone Function
+
+`iClone()` creates a new INFT with identical AI metadata while preserving the original. This powers the **template system** — featured Claws on the explore page can be cloned by other users as starting points.
+
+#### Authorized Usage
+
+`authorizeUsage()` grants interaction rights without ownership transfer. This is how end-users chat with a Claw — the owner authorizes the CaaS platform (or specific users) to use the agent's intelligence for inference, without giving them access to the underlying data.
+
+#### INFT × 0G Infrastructure
+
+| Component | Role in INFT Flow |
+|-----------|-------------------|
+| 0G Storage | Stores encrypted agent data (soul.md, skills, memory) referenced by `IntelligentData.dataHash` |
+| 0G DA | Verifies data availability during transfers — guarantees metadata isn't lost |
+| 0G Chain | Hosts the AgentNFT smart contract, processes mints/transfers/clones |
+| 0G Compute | Runs inference using the decrypted agent data inside TEE enclaves |
+
+#### Encryption Standards
+
+- **AES-256-GCM** for symmetric encryption of agent data
+- **RSA-4096 or ECC-P384** for public-key encryption of sealed keys
+- **TEE attestation** (Intel SGX / ARM TrustZone) for oracle verification
+- **ZKP alternative** supported for environments without TEE hardware (sender generates re-encryption keys; receivers should rotate keys post-transfer)
+
+#### SDK & Tooling
+
+```bash
+npm install @0gfoundation/0g-ts-sdk @openzeppelin/contracts ethers hardhat
+```
+
+**Environment (0G Testnet):**
+```
+OG_RPC_URL=https://evmrpc-testnet.0g.ai
+OG_STORAGE_URL=https://storage-testnet.0g.ai
+OG_COMPUTE_URL=https://compute-testnet.0g.ai
+```
+
+The reference `AgentNFT` contract is upgradeable (UUPS proxy) and uses ERC-7201 namespaced storage. The `@0gfoundation/0g-ts-sdk` handles 0G Storage read/write for encrypted metadata.
+
+#### Impact on Agent Creation Flow
+
+The deploy step (Step 5) now includes INFT minting:
+
+1. Encrypt soul.md + skills.json + config.json with owner's key
+2. Upload encrypted blobs to 0G Storage → get content hashes
+3. Call `AgentNFT.mint(intelligentData[], ownerAddress)` on 0G Chain
+4. Write ENS text records: `caas.inft: <token-id>`, `caas.storage: <merkle-root>`
+5. Register in AgentBook via AgentKit
+6. Seed with 5 WLD initial credit
+7. Activate channels
 
 ---
 
