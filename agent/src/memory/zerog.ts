@@ -15,7 +15,8 @@ export class ZeroGMemory {
 
   constructor(config: ZeroGStorageConfig) {
     this.config = config;
-    this.signer = new ethers.Wallet(config.privateKey);
+    const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+    this.signer = new ethers.Wallet(config.privateKey, provider);
   }
 
   async initialize(): Promise<void> {

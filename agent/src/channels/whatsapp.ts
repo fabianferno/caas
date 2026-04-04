@@ -1,8 +1,6 @@
-import makeWASocket, {
-  useMultiFileAuthState,
-  DisconnectReason,
-  type WASocket,
-} from "@whiskeysockets/baileys";
+import baileys from "@whiskeysockets/baileys";
+const { makeWASocket, useMultiFileAuthState, DisconnectReason } = baileys;
+type WASocket = ReturnType<typeof makeWASocket>;
 import type { Channel, MessageHandler, IncomingMessage } from "./types.js";
 import type { AgentResponse } from "../core/types.js";
 
@@ -11,12 +9,16 @@ export interface WhatsAppChannelOptions {
   allowedUserIds: string[];
 }
 
+const MAX_RECONNECT_ATTEMPTS = 3;
+
 export class WhatsAppChannel implements Channel {
   name = "whatsapp";
   private socket: WASocket | null = null;
   private sessionDir: string;
   private allowedUserIds: Set<string>;
   private handler: MessageHandler | null = null;
+  private stopping = false;
+  private reconnectAttempts = 0;
 
   constructor(opts: WhatsAppChannelOptions) {
     this.sessionDir = opts.sessionDir;
@@ -25,7 +27,11 @@ export class WhatsAppChannel implements Channel {
 
   async start(): Promise<void> {
     const { state, saveCreds } = await useMultiFileAuthState(this.sessionDir);
-    this.socket = makeWASocket({ auth: state, printQRInTerminal: true });
+    this.socket = makeWASocket({
+      auth: state,
+      printQRInTerminal: true,
+      logger: { level: "silent", child: () => ({}) } as any,
+    });
 
     this.socket.ev.on("creds.update", saveCreds);
 
@@ -33,13 +39,25 @@ export class WhatsAppChannel implements Channel {
       const { connection, lastDisconnect } = update;
       if (connection === "close") {
         const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
-        if (statusCode !== DisconnectReason.loggedOut) {
-          console.log("[whatsapp] Reconnecting...");
-          this.start();
+        if (
+          statusCode !== DisconnectReason.loggedOut &&
+          !this.stopping &&
+          this.reconnectAttempts < MAX_RECONNECT_ATTEMPTS
+        ) {
+          this.reconnectAttempts++;
+          console.log(
+            `[whatsapp] Reconnecting (${this.reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
+          );
+          setTimeout(() => this.start(), 3000);
+        } else if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+          console.warn(
+            "[whatsapp] Max reconnect attempts reached. Pair your phone by scanning the QR code."
+          );
         } else {
           console.log("[whatsapp] Logged out");
         }
       } else if (connection === "open") {
+        this.reconnectAttempts = 0;
         console.log("[whatsapp] Connected");
       }
     });
@@ -71,6 +89,7 @@ export class WhatsAppChannel implements Channel {
   }
 
   async stop(): Promise<void> {
+    this.stopping = true;
     this.socket?.end(undefined);
     this.socket = null;
   }

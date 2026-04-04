@@ -126,10 +126,11 @@ async function main() {
     channels.push(discord);
   }
 
-  // WhatsApp always available
-  const whatsapp = new WhatsAppChannel({ sessionDir: "./data/whatsapp-session", allowedUserIds: config.allowedUserIds });
-  whatsapp.onMessage(handleMessage);
-  channels.push(whatsapp);
+  if (config.enableWhatsApp) {
+    const whatsapp = new WhatsAppChannel({ sessionDir: "./data/whatsapp-session", allowedUserIds: config.allowedUserIds });
+    whatsapp.onMessage(handleMessage);
+    channels.push(whatsapp);
+  }
 
   if (config.enableWeb) {
     const webchat = new WebChatChannel({ port: config.webPort });

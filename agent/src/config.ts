@@ -1,4 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config(); // fallback to .env
 
 export interface Config {
   agentPrivateKey: string;
@@ -6,6 +9,7 @@ export interface Config {
   rpcUrl: string;
   telegramBotToken?: string;
   discordBotToken?: string;
+  enableWhatsApp: boolean;
   enableWeb: boolean;
   webPort: number;
   allowedUserIds: string[];
@@ -24,9 +28,10 @@ export function loadConfig(): Config {
   return {
     agentPrivateKey: key,
     agentEnsName: ensName,
-    rpcUrl: process.env.RPC_URL || "https://evmrpc.0g.ai",
+    rpcUrl: process.env.RPC_URL || "https://evmrpc-testnet.0g.ai",
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || undefined,
     discordBotToken: process.env.DISCORD_BOT_TOKEN || undefined,
+    enableWhatsApp: process.env.ENABLE_WHATSAPP === "true",
     enableWeb: process.env.ENABLE_WEB === "true",
     webPort: parseInt(process.env.WEB_PORT || "3001", 10),
     allowedUserIds: (process.env.ALLOWED_USER_IDS || "")

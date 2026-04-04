@@ -24,40 +24,82 @@ interface OpenAIMessage {
 
 export class ZeroGLLMProvider implements LLMProvider {
   private config: ZeroGConfig;
-  private broker: unknown = null;
+  private broker: any = null;
   private providerAddress: string | null = null;
   private serviceEndpoint: string | null = null;
   private model: string | null = null;
+  private ready = false;
 
   constructor(config: ZeroGConfig) {
     this.config = config;
   }
 
   async initialize(): Promise<void> {
-    const { createZGComputeNetworkBroker } = await import("@0glabs/0g-serving-broker");
-    const wallet = new ethers.Wallet(this.config.privateKey);
+    const { createRequire } = await import("node:module");
+    const require = createRequire(import.meta.url);
+    const { createZGComputeNetworkBroker } = require("@0glabs/0g-serving-broker");
+    const provider = new ethers.JsonRpcProvider(this.config.rpcUrl);
+    const wallet = new ethers.Wallet(this.config.privateKey, provider);
     this.broker = await createZGComputeNetworkBroker(wallet as any);
 
-    const services = await (this.broker as any).inference.listService();
-    const chatService = services.find(
-      (s: any) => s.serviceType === "chat" || s.model?.includes("chat")
-    );
-    if (!chatService) {
-      const svc = services[0];
-      if (!svc) throw new Error("No 0G Compute services available");
-      this.providerAddress = svc.provider;
-      this.serviceEndpoint = svc.url;
-      this.model = svc.model;
-    } else {
-      this.providerAddress = chatService.provider;
-      this.serviceEndpoint = chatService.url;
-      this.model = chatService.model;
+    // List available inference services
+    const services = await this.broker.inference.listService();
+    if (!services || services.length === 0) {
+      throw new Error("No 0G Compute services available");
     }
 
+    console.log(`[llm] Found ${services.length} services:`);
+    for (const svc of services) {
+      console.log(`[llm]   ${svc.model} @ ${svc.provider}`);
+    }
+
+    // Pick a chatbot service (prefer deepseek)
+    const preferred = services.find(
+      (s: any) => s.model?.includes("deepseek")
+    );
+    const chatService = preferred || services.find(
+      (s: any) => s.serviceType === "chatbot"
+    ) || services[0];
+
+    this.providerAddress = chatService.provider;
+    this.serviceEndpoint = chatService.url;
+    this.model = chatService.model;
+    console.log(`[llm] Selected: ${this.model} @ ${this.providerAddress}`);
+
+    // Ensure ledger exists
     try {
-      await (this.broker as any).inference.addAccount(this.providerAddress, 0.001);
+      await this.broker.ledger.getLedger();
+      console.log("[llm] Ledger exists");
     } catch {
-      // Account may already exist
+      console.log("[llm] Creating ledger...");
+      await this.broker.ledger.addLedger(1);
+      console.log("[llm] Ledger created, depositing funds...");
+      await this.broker.ledger.depositFund(4);
+      console.log("[llm] Deposited 4 A0GI");
+    }
+
+    // Ensure provider account is funded
+    try {
+      const account = await this.broker.inference.getAccount(this.providerAddress);
+      console.log("[llm] Provider account exists");
+    } catch {
+      console.log("[llm] Funding provider account...");
+      try {
+        await this.broker.ledger.transferFund(this.providerAddress, "inference", 4);
+        console.log("[llm] Provider account funded");
+      } catch (err: any) {
+        console.error("[llm] Failed to fund provider:", err?.message);
+      }
+    }
+
+    // Acknowledge provider signer (downloads provider's signing key)
+    try {
+      await this.broker.inference.acknowledgeProviderSigner(this.providerAddress);
+      console.log("[llm] Provider signer acknowledged");
+      this.ready = true;
+    } catch (err: any) {
+      console.warn("[llm] Could not acknowledge provider signer:", err?.message?.slice(0, 100));
+      console.warn("[llm] Provider may be offline. Will retry on first request.");
     }
   }
 
@@ -85,7 +127,20 @@ export class ZeroGLLMProvider implements LLMProvider {
       throw new Error("LLM provider not initialized. Call initialize() first.");
     }
 
-    const headers = await (this.broker as any).inference.getRequestHeaders(this.providerAddress);
+    // Retry acknowledge if it failed during init
+    if (!this.ready) {
+      try {
+        await this.broker.inference.acknowledgeProviderSigner(this.providerAddress);
+        this.ready = true;
+      } catch (err: any) {
+        throw new Error(
+          `0G provider ${this.model} is not reachable. ` +
+          `The provider signer could not be acknowledged. Try again later.`
+        );
+      }
+    }
+
+    const headers = await this.broker.inference.getRequestHeaders(this.providerAddress);
 
     const body: Record<string, unknown> = {
       model: this.model,
