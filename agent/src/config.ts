@@ -16,6 +16,11 @@ export interface Config {
   shellAllowlist: string[];
   mcpConfigPath: string;
   heartbeatInterval: number;
+  // Bedrock fallback
+  awsAccessKeyId?: string;
+  awsSecretAccessKey?: string;
+  awsRegion: string;
+  bedrockModel: string;
 }
 
 export function loadConfig(): Config {
@@ -47,5 +52,9 @@ export function loadConfig(): Config {
       process.env.HEARTBEAT_INTERVAL || "300000",
       10
     ),
+    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || undefined,
+    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || undefined,
+    awsRegion: process.env.AWS_REGION || "us-east-1",
+    bedrockModel: process.env.BEDROCK_MODEL || "amazon.nova-lite-v1:0",
   };
 }

@@ -11,6 +11,13 @@ export interface ZeroGConfig {
   rpcUrl: string;
 }
 
+export interface BedrockConfig {
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  model: string;
+}
+
 interface OpenAIMessage {
   role: string;
   content: string | null;
@@ -21,6 +28,137 @@ interface OpenAIMessage {
     function: { name: string; arguments: string };
   }>;
 }
+
+// --- Bedrock LLM Provider ---
+
+export class BedrockLLMProvider implements LLMProvider {
+  private config: BedrockConfig;
+  private client: any = null;
+
+  constructor(config: BedrockConfig) {
+    this.config = config;
+  }
+
+  async initialize(): Promise<void> {
+    const { BedrockRuntimeClient } = await import(
+      "@aws-sdk/client-bedrock-runtime"
+    );
+    this.client = new BedrockRuntimeClient({
+      region: this.config.region,
+      credentials: {
+        accessKeyId: this.config.accessKeyId,
+        secretAccessKey: this.config.secretAccessKey,
+      },
+    });
+    console.log(`[llm:bedrock] Initialized with model ${this.config.model}`);
+  }
+
+  async chat(
+    messages: ChatMessage[],
+    tools?: OpenAITool[]
+  ): Promise<LLMResponse> {
+    if (!this.client) {
+      throw new Error("Bedrock provider not initialized. Call initialize() first.");
+    }
+
+    const { ConverseCommand } = await import(
+      "@aws-sdk/client-bedrock-runtime"
+    );
+
+    // Convert messages to Bedrock Converse format
+    const system: Array<{ text: string }> = [];
+    const converseMessages: Array<{ role: string; content: any[] }> = [];
+
+    for (const msg of messages) {
+      if (msg.role === "system") {
+        system.push({ text: msg.content || "" });
+      } else if (msg.role === "user") {
+        converseMessages.push({
+          role: "user",
+          content: [{ text: msg.content || "" }],
+        });
+      } else if (msg.role === "assistant") {
+        const content: any[] = [];
+        if (msg.content) content.push({ text: msg.content });
+        if (msg.toolCalls) {
+          for (const tc of msg.toolCalls) {
+            content.push({
+              toolUse: {
+                toolUseId: tc.id,
+                name: tc.name,
+                input: JSON.parse(tc.arguments),
+              },
+            });
+          }
+        }
+        if (content.length > 0) {
+          converseMessages.push({ role: "assistant", content });
+        }
+      } else if (msg.role === "tool") {
+        converseMessages.push({
+          role: "user",
+          content: [
+            {
+              toolResult: {
+                toolUseId: msg.toolCallId,
+                content: [{ text: msg.content || "" }],
+              },
+            },
+          ],
+        });
+      }
+    }
+
+    // Build Bedrock tool config
+    const input: any = {
+      modelId: this.config.model,
+      system,
+      messages: converseMessages,
+    };
+
+    if (tools && tools.length > 0) {
+      input.toolConfig = {
+        tools: tools.map((t) => ({
+          toolSpec: {
+            name: t.function.name,
+            description: t.function.description,
+            inputSchema: { json: t.function.parameters },
+          },
+        })),
+      };
+    }
+
+    const command = new ConverseCommand(input);
+    const response = await this.client.send(command);
+
+    // Parse Bedrock response
+    const output = response.output?.message;
+    if (!output) throw new Error("No output in Bedrock response");
+
+    let content: string | null = null;
+    const toolCalls: ToolCall[] = [];
+
+    for (const block of output.content || []) {
+      if (block.text) {
+        content = (content || "") + block.text;
+      }
+      if (block.toolUse) {
+        toolCalls.push({
+          id: block.toolUse.toolUseId,
+          name: block.toolUse.name,
+          arguments: JSON.stringify(block.toolUse.input),
+        });
+      }
+    }
+
+    return {
+      content,
+      toolCalls: toolCalls.length > 0 ? toolCalls : null,
+    };
+  }
+}
+
+// --- 0G Compute LLM Provider ---
 
 export class ZeroGLLMProvider implements LLMProvider {
   private config: ZeroGConfig;
@@ -42,19 +180,17 @@ export class ZeroGLLMProvider implements LLMProvider {
     const wallet = new ethers.Wallet(this.config.privateKey, provider);
     this.broker = await createZGComputeNetworkBroker(wallet as any);
 
-    // List available inference services
     const services = await this.broker.inference.listService();
     if (!services || services.length === 0) {
       throw new Error("No 0G Compute services available");
     }
 
-    // Filter to chatbot services only
     const chatServices = services.filter(
       (s: any) => s.serviceType === "chatbot" || s.serviceType === "chat"
     );
-    console.log(`[llm] Found ${services.length} services (${chatServices.length} chatbots):`);
+    console.log(`[llm:0g] Found ${services.length} services (${chatServices.length} chatbots):`);
     for (const svc of chatServices) {
-      console.log(`[llm]   ${svc.model} @ ${svc.provider}`);
+      console.log(`[llm:0g]   ${svc.model} @ ${svc.provider}`);
     }
 
     if (chatServices.length === 0) {
@@ -64,51 +200,40 @@ export class ZeroGLLMProvider implements LLMProvider {
     // Ensure ledger exists
     try {
       await this.broker.ledger.getLedger();
-      console.log("[llm] Ledger exists");
     } catch {
-      console.log("[llm] Creating ledger and depositing funds...");
+      console.log("[llm:0g] Creating ledger and depositing funds...");
       await this.broker.ledger.addLedger(1);
       await this.broker.ledger.depositFund(4);
-      console.log("[llm] Ledger created with 4 A0GI");
     }
 
     // Try each chatbot service until one is reachable
     for (const svc of chatServices) {
-      console.log(`[llm] Trying ${svc.model}...`);
+      console.log(`[llm:0g] Trying ${svc.model}...`);
 
-      // Ensure provider account is funded
       try {
         await this.broker.inference.getAccount(svc.provider);
       } catch {
         try {
           await this.broker.ledger.transferFund(svc.provider, "inference", 1);
-          console.log(`[llm] Funded account for ${svc.model}`);
-        } catch (err: any) {
-          console.warn(`[llm] Could not fund ${svc.model}: ${err?.message?.slice(0, 80)}`);
+        } catch {
           continue;
         }
       }
 
-      // Try to acknowledge provider signer (verifies provider is online)
       try {
         await this.broker.inference.acknowledgeProviderSigner(svc.provider);
         this.providerAddress = svc.provider;
         this.serviceEndpoint = svc.url;
         this.model = svc.model;
         this.ready = true;
-        console.log(`[llm] Connected to ${this.model}`);
+        console.log(`[llm:0g] Connected to ${this.model}`);
         return;
       } catch (err: any) {
-        console.warn(`[llm] ${svc.model} unreachable: ${err?.message?.slice(0, 80)}`);
+        console.warn(`[llm:0g] ${svc.model} unreachable: ${err?.message?.slice(0, 80)}`);
       }
     }
 
-    // No reachable provider -- pick first and hope it comes back
-    const fallback = chatServices[0];
-    this.providerAddress = fallback.provider;
-    this.serviceEndpoint = fallback.url;
-    this.model = fallback.model;
-    console.warn(`[llm] No reachable providers. Using ${this.model} as fallback (will retry on request).`);
+    throw new Error("All 0G Compute providers are offline");
   }
 
   formatMessages(messages: ChatMessage[]): OpenAIMessage[] {
@@ -135,16 +260,12 @@ export class ZeroGLLMProvider implements LLMProvider {
       throw new Error("LLM provider not initialized. Call initialize() first.");
     }
 
-    // Retry acknowledge if it failed during init
     if (!this.ready) {
       try {
         await this.broker.inference.acknowledgeProviderSigner(this.providerAddress);
         this.ready = true;
-      } catch (err: any) {
-        throw new Error(
-          `0G provider ${this.model} is not reachable. ` +
-          `The provider signer could not be acknowledged. Try again later.`
-        );
+      } catch {
+        throw new Error(`0G provider ${this.model} is not reachable.`);
       }
     }
 
@@ -184,5 +305,48 @@ export class ZeroGLLMProvider implements LLMProvider {
       : null;
 
     return { content: msg.content || null, toolCalls };
+  }
+}
+
+// --- Fallback Provider (tries 0G first, falls back to Bedrock) ---
+
+export class FallbackLLMProvider implements LLMProvider {
+  private primary: ZeroGLLMProvider;
+  private fallback: BedrockLLMProvider;
+  private useFallback = false;
+
+  constructor(primary: ZeroGLLMProvider, fallback: BedrockLLMProvider) {
+    this.primary = primary;
+    this.fallback = fallback;
+  }
+
+  async initialize(): Promise<void> {
+    // Always init Bedrock (it's reliable)
+    await this.fallback.initialize();
+
+    // Try 0G, fall back gracefully
+    try {
+      await this.primary.initialize();
+      console.log("[llm] Using 0G Compute as primary provider");
+    } catch (err: any) {
+      console.warn(`[llm] 0G Compute unavailable: ${err?.message?.slice(0, 100)}`);
+      console.log("[llm] Using AWS Bedrock as fallback provider");
+      this.useFallback = true;
+    }
+  }
+
+  async chat(
+    messages: ChatMessage[],
+    tools?: OpenAITool[]
+  ): Promise<LLMResponse> {
+    if (!this.useFallback) {
+      try {
+        return await this.primary.chat(messages, tools);
+      } catch (err: any) {
+        console.warn(`[llm] 0G request failed, switching to Bedrock: ${err?.message?.slice(0, 80)}`);
+        this.useFallback = true;
+      }
+    }
+    return this.fallback.chat(messages, tools);
   }
 }

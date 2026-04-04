@@ -1,6 +1,6 @@
 import { loadConfig } from "./config.js";
 import { ToolRegistry } from "./core/tools.js";
-import { ZeroGLLMProvider } from "./core/llm.js";
+import { ZeroGLLMProvider, BedrockLLMProvider, FallbackLLMProvider } from "./core/llm.js";
 import { AgentLoop } from "./core/agent.js";
 import { TelegramChannel } from "./channels/telegram.js";
 import { DiscordChannel } from "./channels/discord.js";
@@ -24,14 +24,16 @@ async function main() {
   // Tool Registry
   const tools = new ToolRegistry();
 
-  // LLM Provider
-  const llm = new ZeroGLLMProvider({ privateKey: config.agentPrivateKey, rpcUrl: config.rpcUrl });
-  try {
-    await llm.initialize();
-    console.log("[llm] 0G Compute provider initialized");
-  } catch (err) {
-    console.error("[llm] Failed to initialize 0G Compute:", err);
-  }
+  // LLM Provider (0G Compute primary, Bedrock fallback)
+  const zeroG = new ZeroGLLMProvider({ privateKey: config.agentPrivateKey, rpcUrl: config.rpcUrl });
+  const bedrock = new BedrockLLMProvider({
+    region: config.awsRegion,
+    accessKeyId: config.awsAccessKeyId || "",
+    secretAccessKey: config.awsSecretAccessKey || "",
+    model: config.bedrockModel,
+  });
+  const llm = new FallbackLLMProvider(zeroG, bedrock);
+  await llm.initialize();
 
   // Memory
   const memory = new ZeroGMemory({ privateKey: config.agentPrivateKey, rpcUrl: config.rpcUrl, maxConversations: 50 });
