@@ -5,7 +5,6 @@ import { VerificationBadge } from '@/components/VerificationBadge';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
-  ShieldCheck,
   Wallet,
   Plus,
   Coins,

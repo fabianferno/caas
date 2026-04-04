@@ -6,13 +6,11 @@ import { useState } from 'react';
 import {
   ShieldCheck,
   AtSign,
-  Settings,
   Brain,
   Rocket,
   ChevronLeft,
   ChevronRight,
   Check,
-  Circle,
   AlertTriangle,
   Ban,
   Info,
@@ -170,7 +168,7 @@ export default function Create() {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setVerified(true)}
-                  className={`px-8 py-3 rounded-full font-medium text-sm transition-colors ${
+                  className={`px-8 py-3 rounded-2xl font-bold text-sm transition-colors ${
                     verified
                       ? 'bg-accent/10 text-accent'
                       : 'bg-accent text-white'
@@ -438,7 +436,8 @@ export default function Create() {
 
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  className="w-full bg-gradient-to-r from-accent to-accent-light text-white font-semibold py-3.5 rounded-full text-sm"
+                  className="w-full bg-accent text-white font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform"
+                  style={{ boxShadow: "0 4px 28px rgba(234,88,12,0.4)" }}
                 >
                   Deploy My Claw — 5 WLD
                 </motion.button>

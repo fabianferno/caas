@@ -1,84 +1,146 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { Fingerprint, Settings, Coins, Rocket } from "lucide-react";
+import { Coins, Fingerprint, Rocket, Settings } from "lucide-react";
 import { useRef } from "react";
 
 const steps = [
   {
+    num: "01",
     icon: Fingerprint,
-    title: "Verify with World ID",
-    description:
-      "Prove you're a unique human using World ID. Only verified humans can spin up and operate Claw agents.",
+    title: "VERIFY",
+    description: "Prove you're human with World ID.",
+    bg: "#ea580c",
+    fg: "#fff",
+    subFg: "rgba(255,255,255,0.6)",
+    numFg: "rgba(255,255,255,0.07)",
+    tag: "IDENTITY",
+    tagBg: "rgba(255,255,255,0.15)",
+    tagFg: "#fff",
   },
   {
+    num: "02",
     icon: Settings,
-    title: "Configure Your Claw",
-    description:
-      "Pick a template or start from scratch. Set your agent's capabilities, channels, personality, and guardrails.",
+    title: "CONFIGURE",
+    description: "Name, channels, personality.",
+    bg: "#242424",
+    fg: "#fff",
+    subFg: "rgba(255,255,255,0.5)",
+    numFg: "rgba(255,255,255,0.05)",
+    tag: "SETUP",
+    tagBg: "rgba(255,255,255,0.08)",
+    tagFg: "rgba(255,255,255,0.6)",
   },
   {
+    num: "03",
     icon: Coins,
-    title: "Fund with WLD",
-    description:
-      "Load your agent's balance with World coins. Credits cover LLM compute, messaging, x402 transactions, and more.",
+    title: "FUND",
+    description: "Top up WLD credits.",
+    bg: "#fbbf24",
+    fg: "#111",
+    subFg: "rgba(0,0,0,0.5)",
+    numFg: "rgba(0,0,0,0.06)",
+    tag: "PAYMENT",
+    tagBg: "rgba(0,0,0,0.1)",
+    tagFg: "#111",
   },
   {
+    num: "04",
     icon: Rocket,
-    title: "Deploy & Go Live",
-    description:
-      "Your Claw goes live across WhatsApp, Telegram, and the web. Monitor usage and top up credits from your dashboard.",
+    title: "DEPLOY",
+    description: "Go live instantly. No servers.",
+    bg: "#818cf8",
+    fg: "#fff",
+    subFg: "rgba(255,255,255,0.6)",
+    numFg: "rgba(255,255,255,0.07)",
+    tag: "LAUNCH",
+    tagBg: "rgba(255,255,255,0.15)",
+    tagFg: "#fff",
   },
 ];
 
 export default function HowItWorks() {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-40px" });
 
   return (
-    <section className="py-24 sm:py-32 bg-surface" ref={ref}>
-      <div className="max-w-7xl mx-auto px-6">
+    <section
+      className="flex flex-col justify-center min-h-dvh py-10 px-5"
+      style={{ background: "#111" }}
+      ref={ref}
+    >
+      <div className="max-w-sm mx-auto w-full">
+
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-5"
         >
-          <h2 className="font-coolvetica text-4xl sm:text-5xl text-foreground">
+          <span className="inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-accent mb-3">
             How It Works
+          </span>
+          <h2
+            className="font-coolvetica uppercase text-foreground"
+            style={{ fontSize: "clamp(2.6rem,12vw,4rem)", lineHeight: 0.88 }}
+          >
+            LIVE IN
+            <br />
+            FOUR
+            <br />
+            STEPS.
           </h2>
-          <p className="text-muted-foreground mt-3 text-lg max-w-xl mx-auto">
-            From verification to a live AI agent in four simple steps.
-          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 gap-2.5">
           {steps.map((step, i) => (
             <motion.div
               key={step.title}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.12 }}
-              className="relative bg-background rounded-2xl p-6 border border-surface-dark/60"
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ delay: i * 0.07, duration: 0.4 }}
+              className="rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between"
+              style={{ background: step.bg, minHeight: 148 }}
             >
-              {/* Step number */}
-              <span className="absolute top-5 right-5 font-coolvetica text-5xl text-surface-dark/80 select-none">
-                {i + 1}
+              {/* Big bg number */}
+              <span
+                className="absolute right-1 top-0 font-coolvetica select-none pointer-events-none"
+                style={{
+                  fontSize: "4.5rem",
+                  lineHeight: 1,
+                  color: step.numFg,
+                }}
+              >
+                {step.num}
               </span>
 
-              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5">
-                <step.icon className="w-6 h-6 text-accent" />
-              </div>
+              {/* Tag */}
+              <span
+                className="relative z-10 self-start text-[9px] font-bold uppercase tracking-[0.15em] px-2 py-1 rounded-full"
+                style={{ background: step.tagBg, color: step.tagFg }}
+              >
+                {step.tag}
+              </span>
 
-              <h3 className="font-coolvetica text-xl text-foreground mb-2">
-                {step.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {step.description}
-              </p>
+              {/* Content */}
+              <div className="relative z-10 mt-3">
+                <step.icon size={18} style={{ color: step.fg, opacity: 0.65, marginBottom: 6 }} />
+                <p
+                  className="font-coolvetica uppercase leading-tight text-[1.25rem]"
+                  style={{ color: step.fg }}
+                >
+                  {step.title}
+                </p>
+                <p
+                  className="text-[11px] mt-1 leading-snug"
+                  style={{ color: step.subFg }}
+                >
+                  {step.description}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
+
       </div>
     </section>
   );
