@@ -1,79 +1,124 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowRight, Compass } from "lucide-react";
+import { ArrowRight, Globe, Zap, ShieldCheck } from "lucide-react";
+import gsap from "gsap";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { useEffect, useRef } from "react";
+
+const ArmViewer = dynamic(() => import("@/components/ArmViewer"), {
+  ssr: false,
+  loading: () => null,
+});
+
+const LOGO_PATH =
+  "M545.651978,679.348389 C565.016174,693.402771 584.074585,707.266296 603.130249,721.133606 C606.303162,723.442627 605.286011,725.198853 602.312561,726.520874 C592.430115,730.914307 582.249878,734.476318 571.795105,737.243225 C568.760498,738.046387 565.689575,738.712585 562.657104,739.523193 C561.017700,739.961426 559.798828,739.352295 558.521057,738.420166 C540.133911,725.006836 521.731750,711.613953 503.318359,698.236755 C490.683197,689.057495 478.011688,679.928223 465.379852,670.744385 C442.821381,654.343384 420.344849,637.828491 397.690582,621.561096 C391.438904,617.071899 385.604950,611.879517 378.599152,608.503601 C378.253448,608.803650 377.907745,609.103699 377.562042,609.403687 C408.938751,652.572388 440.315491,695.741028 472.337708,739.797729 C464.716187,740.893250 459.156647,738.312317 453.606201,736.869690 C439.933350,733.315796 426.784180,728.184875 413.880920,722.360229 C408.729980,720.035034 405.277039,716.379272 402.134918,712.043762 C382.844482,685.426514 363.532990,658.824463 344.212402,632.229126 C343.945648,631.861877 343.469635,631.646729 342.229370,630.708740 C347.905365,648.412537 353.296509,665.227783 358.687653,682.043091 C357.962585,682.336548 357.237518,682.629944 356.512482,682.923401 C316.939636,646.494019 291.734802,601.575317 284.252899,548.274231 C272.972687,467.913513 297.814697,399.356415 356.083923,343.272797 C356.962463,343.550354 357.841003,343.827942 358.719513,344.105499 C353.526917,360.428802 348.334320,376.752075 343.141724,393.075378 C349.301666,388.305908 352.969238,381.787659 357.327850,375.854645 C373.641846,353.647797 389.753082,331.292053 405.963135,309.008698 C406.534668,308.223114 407.230347,307.389221 408.064392,306.953522 C427.716858,296.687042 448.376312,289.408752 470.991028,286.416077 C456.388153,309.204193 440.199890,330.754547 424.369415,352.552612 C408.471832,374.443024 392.572784,396.332336 377.309509,419.064087 C382.579132,415.407684 387.922302,411.852203 393.105316,408.076813 C412.305664,394.090942 431.450195,380.028412 450.621613,366.002777 C465.496185,355.120636 480.347260,344.205933 495.267120,333.386169 C515.839722,318.467072 536.554443,303.741730 556.994263,288.643738 C560.872131,285.779358 564.366150,287.160400 567.842651,288.009796 C578.947815,290.723053 589.791199,294.374969 600.378418,298.688873 C606.524841,301.193298 606.626404,302.695374 601.485596,306.465790 C575.935730,325.204834 550.518494,344.128693 524.785706,362.613220 C499.852509,380.523407 474.950989,398.470306 450.274292,416.734070 C434.537201,428.381439 418.511353,439.638580 402.622437,451.081116 C402.095978,451.460236 401.651245,451.952850 401.413239,453.031586 C414.695099,448.768097 427.985687,444.531555 441.257172,440.235992 C479.013733,428.015442 516.761230,415.766846 554.514893,403.537262 C578.818665,395.664459 603.138672,387.841187 627.429688,379.928986 C645.583130,374.015961 663.728943,368.076202 681.813538,361.957428 C685.481628,360.716339 687.556458,361.250397 690.148254,364.443542 C696.648132,372.451263 703.160278,380.421448 708.458191,389.283600 C711.614685,394.563660 711.373718,395.055115 705.761719,396.871979 C678.304443,405.761230 650.809875,414.535797 623.373108,423.487762 C606.824341,428.887238 590.472839,434.918396 573.822205,439.971954 C555.256348,445.606781 536.888977,451.868347 518.466736,457.896729 C496.581207,465.058441 474.474823,471.581299 452.819733,479.491150 C440.542572,483.975555 427.863983,487.360779 415.366180,491.241058 C415.407684,491.683472 415.449158,492.125885 415.490662,492.568298 C422.633301,492.568298 429.781372,492.750061 436.917664,492.537201 C469.908569,491.553131 502.909943,491.907623 535.897644,492.172394 C602.890076,492.710144 669.881775,492.533386 736.873596,492.588165 C741.269958,492.591766 743.146606,493.330658 743.606689,498.418945 C744.581543,509.200195 745.147644,519.862122 743.381042,530.598694 C743.003967,532.890320 742.003296,533.833984 739.898010,533.946289 C738.568054,534.017151 737.233887,534.031067 735.901611,534.031189 C630.573242,534.037903 525.244934,534.040710 419.916565,534.043823 C418.627716,534.043884 417.338837,534.043762 416.049988,534.043762 C415.989960,534.347046 415.929962,534.650330 415.869934,534.953552 C423.670715,537.539062 431.455383,540.174438 439.275299,542.700684 C462.639954,550.248596 486.046570,557.667542 509.384674,565.296326 C540.756836,575.551270 572.065063,586.001343 603.430298,596.277405 C622.019592,602.367676 640.671936,608.265320 659.284607,614.284363 C675.214661,619.435913 691.094177,624.748047 707.075439,629.734619 C710.848999,630.912109 710.950439,632.467407 709.242554,635.442627 C703.341125,645.722900 695.920593,654.878052 688.455933,664.015015 C687.264709,665.473083 686.140015,665.436401 684.534363,664.912170 C671.125122,660.534424 657.691650,656.230652 644.264343,651.908142 C631.166687,647.691772 618.061279,643.499329 604.970825,639.260803 C587.751343,633.685425 570.544922,628.069885 553.329468,622.482178 C542.583496,618.994324 531.828186,615.535278 521.082397,612.046875 C500.889771,605.491760 480.703613,598.916504 460.509674,592.365356 C445.836121,587.604980 431.200043,582.720581 416.449677,578.210632 C411.754395,576.775024 407.439819,573.913330 401.063568,573.994446 C409.179504,579.965149 416.457092,585.343384 423.759979,590.687012 C446.010284,606.967957 468.233215,623.286682 490.539429,639.490723 C505.963715,650.695374 521.515869,661.723816 536.992126,672.857056 C539.822693,674.893372 542.563171,677.054993 545.651978,679.348389 z";
 
 export default function Hero() {
+  const containerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ delay: 0.1 });
+      tl.from(".h-logo", { opacity: 0, duration: 0.4 })
+        .from(".h-line", { y: "110%", duration: 0.72, stagger: 0.09, ease: "power3.out" }, "-=0.1")
+        .from(".h-sub", { opacity: 0, y: 10, duration: 0.45 }, "-=0.4")
+        .from(".h-robot", { opacity: 0, duration: 0.5 }, "-=0.2")
+        .from(".h-cards", { opacity: 0, y: 18, duration: 0.5 }, "-=0.25")
+        .from(".h-cta", { opacity: 0, y: 12, duration: 0.4 }, "-=0.2");
+    }, containerRef);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
-      {/* Subtle radial gradient background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+    <section
+      ref={containerRef}
+      className="flex flex-col min-h-dvh bg-background"
+    >
+      {/* Navbar */}
+      <div className="h-logo flex items-center justify-between px-5 pt-6 pb-2 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center overflow-hidden">
+            <svg viewBox="0 0 1024 1024" className="w-[22px] h-[22px]" fill="white">
+              <path d={LOGO_PATH} />
+            </svg>
+          </div>
+          <span className="font-coolvetica text-[1.65rem] uppercase tracking-tight leading-none text-white">
+            CaaS
+          </span>
+        </div>
+        <span className="text-[10px] text-white/30 border border-white/10 rounded-full px-3 py-1 uppercase tracking-[0.18em]">
+          Beta
+        </span>
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-6 text-center">
-        {/* Pill badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+      {/* Headline */}
+      <div className="px-5 pt-2 shrink-0">
+        <p className="h-sub text-[11px] font-bold uppercase tracking-[0.22em] text-accent mb-2">
+          Agents as a Service
+        </p>
+        <h1
+          className="font-coolvetica uppercase text-white"
+          style={{ fontSize: "clamp(3.6rem,18vw,5.8rem)", lineHeight: 0.84 }}
         >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface border border-surface-dark text-sm text-muted-foreground">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            OpenClaw agents on World
-          </span>
-        </motion.div>
+          <span className="block overflow-hidden"><span className="h-line block">DEPLOY</span></span>
+          <span className="block overflow-hidden"><span className="h-line block">YOUR</span></span>
+          <span className="block overflow-hidden text-accent"><span className="h-line block">AGENT.</span></span>
+        </h1>
+      </div>
 
-        {/* Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="font-coolvetica text-7xl tracking-tight text-foreground mt-8 leading-[1.05]"
-        >
-          Your AI Agents.
-          <br />
-          <span className="text-accent">Powered by WLD.</span>
-          <br />
-          Your Rules.
-        </motion.h1>
+      {/* Spacer — pushes robot toward center */}
+      <div className="flex-1" />
 
-        {/* Subtext */}
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
-          className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
-        >
-          Spin up autonomous AI agents that operate across WhatsApp, Telegram,
-          and the web. Pay for compute, x402 transactions, and messaging
-          &mdash; all with World coins.
-        </motion.p>
+      {/* Robot — fixed height so camera back-fit fills it properly */}
+      <div className="h-robot shrink-0" style={{ height: 300 }}>
+        <ArmViewer height={300} />
+      </div>
 
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.45 }}
-          className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+      {/* Spacer — balances vertical space below robot */}
+      <div className="flex-1" />
+
+      {/* Bottom block — cards + CTA */}
+      <div className="shrink-0 px-5 pb-9">
+        {/* 3 stat cards */}
+        <div className="h-cards grid grid-cols-3 gap-2.5 mb-3">
+
+          <div className="rounded-2xl p-3.5 flex flex-col justify-between bg-accent min-h-[104px]">
+            <Globe size={17} color="rgba(255,255,255,0.7)" />
+            <div>
+              <p className="font-coolvetica text-[1.55rem] text-white leading-none">38M+</p>
+              <p className="text-[10px] text-white/55 uppercase tracking-wide mt-0.5">Users</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-3.5 flex flex-col justify-between bg-indigo min-h-[104px]">
+            <Zap size={17} color="rgba(255,255,255,0.7)" />
+            <div>
+              <p className="font-coolvetica text-[1.15rem] text-white leading-tight">x402</p>
+              <p className="text-[10px] text-white/55 uppercase tracking-wide mt-0.5">Protocol</p>
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-3.5 flex flex-col justify-between bg-cat-yellow min-h-[104px]">
+            <ShieldCheck size={17} color="rgba(0,0,0,0.4)" />
+            <div>
+              <p className="font-coolvetica text-[1.15rem] text-cat-yellow-foreground leading-tight">World</p>
+              <p className="text-[10px] text-black/40 uppercase tracking-wide mt-0.5">Verified</p>
+            </div>
+          </div>
+
+        </div>
+
+        {/* CTA */}
+        <Link
+          href="/create"
+          className="h-cta group w-full inline-flex items-center justify-center gap-2 bg-accent text-white font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform"
+          style={{ boxShadow: "0 4px 28px rgba(234,88,12,0.4)" }}
         >
-          <Link
-            href="#cta"
-            className="group inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-white font-medium px-7 py-3.5 rounded-full transition-all shadow-lg shadow-accent/20 hover:shadow-accent/30"
-          >
-            Create a Claw
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-          <Link
-            href="#featured"
-            className="inline-flex items-center gap-2 border-2 border-surface-dark hover:border-accent/40 text-foreground font-medium px-7 py-3.5 rounded-full transition-all"
-          >
-            <Compass className="w-4 h-4" />
-            Explore Claws
-          </Link>
-        </motion.div>
+          Create Your Claw
+          <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+
       </div>
     </section>
   );

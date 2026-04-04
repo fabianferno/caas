@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     domains: ['static.usernames.app-backend.toolsforhumanity.com'],
   },
   allowedDevOrigins: [
+    'https://romario.crevn.xyz',
+    'http://romario.crevn.xyz',
     'https://red.crevn.xyz',
     'http://localhost:3000',
     'http://127.0.0.1:3000',

@@ -4,16 +4,49 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================
+   LIGHT MODE TOKENS
+   ============================================================ */
 :root {
+  /* Brand — Orange */
   --accent: #ea580c;
   --accent-light: #f97316;
   --accent-dark: #9a3412;
-  --surface: #fff7ed;
-  --surface-dark: #ffedd5;
-  --muted: oklch(0.97 0 0);
-  --card-bg: #FFFFFF;
+  --accent-foreground: #ffffff;
+
+  /* Secondary Accent — Indigo */
+  --indigo: #6366f1;
+  --indigo-dark: #4338ca;
+  --indigo-foreground: #ffffff;
+
+  /* Semantic Status */
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+
+  /* Category Card Palette */
+  --cat-yellow: #f59e0b;
+  --cat-yellow-foreground: #1a1a1a;
+  --cat-coral: #f97316;
+  --cat-coral-foreground: #ffffff;
+  --cat-indigo: #6366f1;
+  --cat-indigo-foreground: #ffffff;
+  --cat-dark: #1a1a1a;
+  --cat-dark-foreground: #ffffff;
+
+  /* Gradient Utilities */
   --warm-gradient-start: #ea580c;
   --warm-gradient-end: #7c2d12;
+
+  /* Surfaces */
+  --surface: #f5f5f5;
+  --surface-dark: #e8e8e8;
+  --surface-elevated: #ffffff;
+  --card-bg: #ffffff;
+
+  /* shadcn Semantic Tokens — Light */
+  --muted: oklch(0.97 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -24,18 +57,23 @@
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent-foreground: #ffffff;
-  --destructive: oklch(0.577 0.245 27.325);
+  --muted-foreground: oklch(0.45 0 0);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
   --border: oklch(0.922 0 0);
+  --border-strong: oklch(0.85 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --ring: #ea580c;
+  --radius: 1rem;
+
+  /* Chart Colors */
+  --chart-1: #ea580c;
+  --chart-2: #6366f1;
+  --chart-3: #16a34a;
+  --chart-4: #d97706;
+  --chart-5: #3b82f6;
+
+  /* Sidebar */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -46,74 +84,271 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ============================================================
+   DARK MODE TOKENS  (app defaults to dark — M-Chef style)
+   ============================================================ */
+.dark {
+  /* ——————————————————————————————————————————————
+     Override @worldcoin/mini-apps-ui-kit-react gray scale for dark mode.
+     The kit uses rgb(var(--gray-N)/opacity) syntax throughout its components
+     (Tabs, inputs, buttons, etc). We invert/remap the scale so all kit
+     components automatically render correctly on dark backgrounds.
+     ——————————————————————————————————————————————
+     Light meanings → Dark remaps:
+       gray-0   = white (component bg)       → near-black  #0c0c0c
+       gray-50  = off-white (hover bg)       → very dark   #151515
+       gray-100 = lightest surface           → dark card   #1c1c1c
+       gray-200 = border / divider           → subtle edge #262626
+       gray-300 = strong border              → visible edge #353535
+       gray-350 = tertiary text              → dim         #545454
+       gray-400 = placeholder / icon         → mid-gray    #828282
+       gray-500 = secondary text             → secondary   #a3a3a3
+       gray-700 = body text                  → near-white  #d4d4d4
+       gray-900 = primary text / active icon → white-ish   #f5f5f5
+  */
+  --gray-0: 17 17 17;
+  --gray-50: 22 22 22;
+  --gray-100: 30 30 30;
+  --gray-200: 42 42 42;
+  --gray-300: 58 58 58;
+  --gray-350: 88 88 88;
+  --gray-400: 130 130 130;
+  --gray-500: 163 163 163;
+  --gray-700: 212 212 212;
+  --gray-900: 245 245 245;
+  /* Brand — Orange (unchanged across modes) */
+  --accent: #ea580c;
+  --accent-light: #f97316;
+  --accent-dark: #9a3412;
+  --accent-foreground: #ffffff;
+
+  /* Secondary Accent — Purple vivid (M-Chef style) */
+  --indigo: #8b83f7;
+  --indigo-dark: #6B5BEB;
+  --indigo-foreground: #0c0c0c;
+
+  /* Semantic Status */
+  --success: #22c55e;
+  --success-foreground: #0c0c0c;
+  --warning: #f59e0b;
+  --warning-foreground: #0c0c0c;
+
+  /* Category Card Palette */
+  --cat-yellow: #fbbf24;
+  --cat-yellow-foreground: #111111;
+  --cat-coral: #f97316;
+  --cat-coral-foreground: #ffffff;
+  --cat-indigo: #818cf8;
+  --cat-indigo-foreground: #0c0c0c;
+  --cat-dark: #1c1c1c;
+  --cat-dark-foreground: #ffffff;
+
+  /* Gradient Utilities */
+  --warm-gradient-start: #ea580c;
+  --warm-gradient-end: #7c2d12;
+
+  /* Dark Surfaces */
+  --surface: #1e1e1e;
+  --surface-dark: #272727;
+  --surface-elevated: #313131;
+  --card-bg: #1e1e1e;
+
+  /* shadcn Semantic Tokens — Dark */
+  --muted: oklch(0.16 0 0);
+  --background: #111111;
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.14 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.13 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.07 0 0);
+  --secondary: oklch(0.18 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted-foreground: oklch(0.65 0 0);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: oklch(1 0 0 / 8%);
+  --border-strong: oklch(1 0 0 / 16%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: #ea580c;
+
+  /* Chart Colors — Vibrant for dark backgrounds */
+  --chart-1: #f97316;
+  --chart-2: #818cf8;
+  --chart-3: #22c55e;
+  --chart-4: #f59e0b;
+  --chart-5: #3b82f6;
+
+  /* Sidebar */
+  --sidebar: oklch(0.13 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #ea580c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: #ea580c;
+}
+
+/* ============================================================
+   TAILWIND THEME TOKENS
+   ============================================================ */
 @theme inline {
+  /* Core semantic tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand accent — orange */
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
   --color-accent-dark: var(--accent-dark);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* Secondary accent — indigo */
+  --color-indigo: var(--indigo);
+  --color-indigo-dark: var(--indigo-dark);
+  --color-indigo-foreground: var(--indigo-foreground);
+
+  /* Status colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  /* Surfaces */
   --color-surface: var(--surface);
   --color-surface-dark: var(--surface-dark);
-  --color-muted: var(--muted);
+  --color-surface-elevated: var(--surface-elevated);
   --color-card-bg: var(--card-bg);
+
+  /* Category card colors */
+  --color-cat-yellow: var(--cat-yellow);
+  --color-cat-yellow-foreground: var(--cat-yellow-foreground);
+  --color-cat-coral: var(--cat-coral);
+  --color-cat-coral-foreground: var(--cat-coral-foreground);
+  --color-cat-indigo: var(--cat-indigo);
+  --color-cat-indigo-foreground: var(--cat-indigo-foreground);
+  --color-cat-dark: var(--cat-dark);
+  --color-cat-dark-foreground: var(--cat-dark-foreground);
+
+  /* Charts */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography */
   --font-sans: var(--font-sans);
   --font-inter: var(--font-inter);
   --font-coolvetica: var(--font-coolvetica);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --font-heading: var(--font-coolvetica);
+  --font-mono: var(--font-sans);
+
+  /* Radius Scale (base: 1rem = 16px) */
+  --radius-xs: calc(var(--radius) * 0.25);   /* 4px  */
+  --radius-sm: calc(var(--radius) * 0.5);    /* 8px  */
+  --radius-md: calc(var(--radius) * 0.75);   /* 12px */
+  --radius-lg: var(--radius);                /* 16px */
+  --radius-xl: calc(var(--radius) * 1.5);    /* 24px */
+  --radius-2xl: calc(var(--radius) * 2);     /* 32px */
+  --radius-3xl: calc(var(--radius) * 2.5);   /* 40px */
+  --radius-4xl: calc(var(--radius) * 3);     /* 48px */
+
+  /* Spacing additions */
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --spacing-safe-top: env(safe-area-inset-top, 0px);
 }
 
+/* ============================================================
+   SELECTION COLORS
+   ============================================================ */
 ::selection {
-  background-color: #c2410c;
-  color: #fff7ed;
+  background-color: #ea580c;
+  color: #ffffff;
 }
 
 ::-moz-selection {
-  background-color: #c2410c;
-  color: #fff7ed;
+  background-color: #ea580c;
+  color: #ffffff;
 }
 
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
 body {
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal overflow on mobile */
+  overflow-x: hidden;
+  /* Reduce tap delay on mobile */
+  touch-action: manipulation;
 }
 
-/* Smooth scroll override for Lenis */
-html.lenis, html.lenis body {
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Use dynamic viewport height for mobile browsers */
+  min-height: 100dvh;
+}
+
+/* ============================================================
+   WORLD UI KIT — GLOBAL OVERRIDES
+   The kit sets --font-sans:"TWK Lausanne" in :root. The Geist variable
+   class on <html> overrides this at element level. Our body rule below
+   ensures Inter is used for all app body text (kit HTML selector loses
+   to our more-specific body selector in cascade order).
+   ============================================================ */
+
+/* Active bottom-nav tab → orange accent text + icon tint.
+   Covers Radix (data-state="active"), World UI Kit (data-state="on"),
+   and ARIA (aria-selected="true") patterns. */
+.dark [role="tablist"] [data-state="on"],
+.dark [role="tablist"] [data-state="active"],
+.dark [role="tablist"] [aria-selected="true"] {
+  color: var(--accent) !important;
+}
+
+.dark [role="tablist"] [data-state="on"] svg,
+.dark [role="tablist"] [data-state="active"] svg,
+.dark [role="tablist"] [aria-selected="true"] svg {
+  color: var(--accent) !important;
+}
+
+/* ============================================================
+   LENIS SMOOTH SCROLL
+   ============================================================ */
+html.lenis,
+html.lenis body {
   height: auto;
 }
 
@@ -129,48 +364,78 @@ html.lenis, html.lenis body {
   overflow: hidden;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: #ea580c;
-  --accent-foreground: #ffffff;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
+/* ============================================================
+   BASE LAYER
+   ============================================================ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Smooth tap state transitions */
+    -webkit-tap-highlight-color: transparent;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
+  }
+
+  /* Heading font */
+  h1, h2, h3 {
+    @apply font-heading;
+  }
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================================
+   UTILITY LAYER
+   ============================================================ */
+@layer utilities {
+  /* Hide scrollbars while keeping scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Tabular number figures for financial/data displays */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Safe area padding helpers */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Card press effect (scale feedback on tap) */
+  .pressable {
+    transition: transform 150ms ease, opacity 150ms ease;
+  }
+  .pressable:active {
+    transform: scale(0.97);
+    opacity: 0.85;
   }
 }

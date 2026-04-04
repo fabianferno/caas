@@ -62,7 +62,7 @@ export default async function RootLayout({
     // auth() can fail during static prerendering
   }
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn("dark font-sans", geist.variable)}>
       <body className={`${inter.variable} ${coolvetica.variable} font-inter`}>
         <ClientProviders session={session}>{children}</ClientProviders>
       </body>

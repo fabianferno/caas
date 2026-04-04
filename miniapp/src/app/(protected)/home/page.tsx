@@ -5,7 +5,6 @@ import { FEATURED_WORLDTARS } from '@/lib/worldtars-data';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
-  Sparkles,
   MessageCircle,
   Plus,
   Compass,
@@ -13,27 +12,13 @@ import {
   ShieldCheck,
   Globe,
   Coins,
+  ArrowRight,
 } from 'lucide-react';
 
 const quickActions = [
-  {
-    label: 'Create Claw',
-    icon: Plus,
-    href: '/create',
-    color: 'bg-accent',
-  },
-  {
-    label: 'Browse All',
-    icon: Compass,
-    href: '/explore',
-    color: 'bg-accent-light',
-  },
-  {
-    label: 'My Agents',
-    icon: Copy,
-    href: '/profile',
-    color: 'bg-accent-dark',
-  },
+  { label: 'Create Claw', icon: Plus, href: '/create', bg: '#ea580c', fg: '#fff' },
+  { label: 'Browse All', icon: Compass, href: '/explore', bg: '#818cf8', fg: '#fff' },
+  { label: 'My Agents', icon: Copy, href: '/profile', bg: '#fbbf24', fg: '#111' },
 ];
 
 export default function Home() {
@@ -41,105 +26,48 @@ export default function Home() {
 
   return (
     <>
-      <Page.Header className="bg-background px-5 pt-5 pb-2">
+      <Page.Header className="bg-background px-5 pt-6 pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-coolvetica text-2xl text-foreground tracking-tight">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-accent mb-0.5">
+              Agents as a Service
+            </p>
+            <h1 className="font-coolvetica text-[1.9rem] uppercase text-foreground leading-none tracking-tight">
               CaaS
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              AI agents powered by World
-            </p>
           </div>
-          <motion.div
-            whileTap={{ scale: 0.95 }}
-            className="w-10 h-10 rounded-full bg-accent flex items-center justify-center"
-          >
-            <Sparkles size={18} className="text-white" />
-          </motion.div>
+          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center overflow-hidden">
+            <svg viewBox="0 0 1024 1024" className="w-5 h-5" fill="white">
+              <path d="M545.651978,679.348389 C565.016174,693.402771 584.074585,707.266296 603.130249,721.133606 C606.303162,723.442627 605.286011,725.198853 602.312561,726.520874 C592.430115,730.914307 582.249878,734.476318 571.795105,737.243225 C568.760498,738.046387 565.689575,738.712585 562.657104,739.523193 C561.017700,739.961426 559.798828,739.352295 558.521057,738.420166 C540.133911,725.006836 521.731750,711.613953 503.318359,698.236755 C490.683197,689.057495 478.011688,679.928223 465.379852,670.744385 C442.821381,654.343384 420.344849,637.828491 397.690582,621.561096 C391.438904,617.071899 385.604950,611.879517 378.599152,608.503601 C378.253448,608.803650 377.907745,609.103699 377.562042,609.403687 C408.938751,652.572388 440.315491,695.741028 472.337708,739.797729 C464.716187,740.893250 459.156647,738.312317 453.606201,736.869690 C439.933350,733.315796 426.784180,728.184875 413.880920,722.360229 C408.729980,720.035034 405.277039,716.379272 402.134918,712.043762 C382.844482,685.426514 363.532990,658.824463 344.212402,632.229126 C343.945648,631.861877 343.469635,631.646729 342.229370,630.708740 C347.905365,648.412537 353.296509,665.227783 358.687653,682.043091 C357.962585,682.336548 357.237518,682.629944 356.512482,682.923401 C316.939636,646.494019 291.734802,601.575317 284.252899,548.274231 C272.972687,467.913513 297.814697,399.356415 356.083923,343.272797 C356.962463,343.550354 357.841003,343.827942 358.719513,344.105499 C353.526917,360.428802 348.334320,376.752075 343.141724,393.075378 C349.301666,388.305908 352.969238,381.787659 357.327850,375.854645 C373.641846,353.647797 389.753082,331.292053 405.963135,309.008698 C406.534668,308.223114 407.230347,307.389221 408.064392,306.953522 C427.716858,296.687042 448.376312,289.408752 470.991028,286.416077 C456.388153,309.204193 440.199890,330.754547 424.369415,352.552612 C408.471832,374.443024 392.572784,396.332336 377.309509,419.064087 C382.579132,415.407684 387.922302,411.852203 393.105316,408.076813 C412.305664,394.090942 431.450195,380.028412 450.621613,366.002777 C465.496185,355.120636 480.347260,344.205933 495.267120,333.386169 C515.839722,318.467072 536.554443,303.741730 556.994263,288.643738 C560.872131,285.779358 564.366150,287.160400 567.842651,288.009796 C578.947815,290.723053 589.791199,294.374969 600.378418,298.688873 C606.524841,301.193298 606.626404,302.695374 601.485596,306.465790 C575.935730,325.204834 550.518494,344.128693 524.785706,362.613220 C499.852509,380.523407 474.950989,398.470306 450.274292,416.734070 C434.537201,428.381439 418.511353,439.638580 402.622437,451.081116 C402.095978,451.460236 401.651245,451.952850 401.413239,453.031586 C414.695099,448.768097 427.985687,444.531555 441.257172,440.235992 C479.013733,428.015442 516.761230,415.766846 554.514893,403.537262 C578.818665,395.664459 603.138672,387.841187 627.429688,379.928986 C645.583130,374.015961 663.728943,368.076202 681.813538,361.957428 C685.481628,360.716339 687.556458,361.250397 690.148254,364.443542 C696.648132,372.451263 703.160278,380.421448 708.458191,389.283600 C711.614685,394.563660 711.373718,395.055115 705.761719,396.871979 C678.304443,405.761230 650.809875,414.535797 623.373108,423.487762 C606.824341,428.887238 590.472839,434.918396 573.822205,439.971954 C555.256348,445.606781 536.888977,451.868347 518.466736,457.896729 C496.581207,465.058441 474.474823,471.581299 452.819733,479.491150 C440.542572,483.975555 427.863983,487.360779 415.366180,491.241058 C415.407684,491.683472 415.449158,492.125885 415.490662,492.568298 C422.633301,492.568298 429.781372,492.750061 436.917664,492.537201 C469.908569,491.553131 502.909943,491.907623 535.897644,492.172394 C602.890076,492.710144 669.881775,492.533386 736.873596,492.588165 C741.269958,492.591766 743.146606,493.330658 743.606689,498.418945 C744.581543,509.200195 745.147644,519.862122 743.381042,530.598694 C743.003967,532.890320 742.003296,533.833984 739.898010,533.946289 C738.568054,534.017151 737.233887,534.031067 735.901611,534.031189 C630.573242,534.037903 525.244934,534.040710 419.916565,534.043823 C418.627716,534.043884 417.338837,534.043762 416.049988,534.043762 C415.989960,534.347046 415.929962,534.650330 415.869934,534.953552 C423.670715,537.539062 431.455383,540.174438 439.275299,542.700684 C462.639954,550.248596 486.046570,557.667542 509.384674,565.296326 C540.756836,575.551270 572.065063,586.001343 603.430298,596.277405 C622.019592,602.367676 640.671936,608.265320 659.284607,614.284363 C675.214661,619.435913 691.094177,624.748047 707.075439,629.734619 C710.848999,630.912109 710.950439,632.467407 709.242554,635.442627 C703.341125,645.722900 695.920593,654.878052 688.455933,664.015015 C687.264709,665.473083 686.140015,665.436401 684.534363,664.912170 C671.125122,660.534424 657.691650,656.230652 644.264343,651.908142 C631.166687,647.691772 618.061279,643.499329 604.970825,639.260803 C587.751343,633.685425 570.544922,628.069885 553.329468,622.482178 C542.583496,618.994324 531.828186,615.535278 521.082397,612.046875 C500.889771,605.491760 480.703613,598.916504 460.509674,592.365356 C445.836121,587.604980 431.200043,582.720581 416.449677,578.210632 C411.754395,576.775024 407.439819,573.913330 401.063568,573.994446 C409.179504,579.965149 416.457092,585.343384 423.759979,590.687012 C446.010284,606.967957 468.233215,623.286682 490.539429,639.490723 C505.963715,650.695374 521.515869,661.723816 536.992126,672.857056 C539.822693,674.893372 542.563171,677.054993 545.651978,679.348389 z" />
+            </svg>
+          </div>
         </div>
       </Page.Header>
 
-      <Page.Main className="bg-background pb-28 px-5 pt-4 space-y-6">
-        {/* Featured Claws */}
-        <section>
-          <h2 className="font-coolvetica text-lg text-foreground mb-3">
-            Featured Claws
-          </h2>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
-            {FEATURED_WORLDTARS.map((w, i) => (
-              <motion.div
-                key={w.ens}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="flex-shrink-0 w-44"
-              >
-                <div
-                  className={`bg-gradient-to-br ${w.gradient} rounded-2xl p-4 h-full flex flex-col justify-between min-h-[220px]`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {w.initials}
-                        </span>
-                      </div>
-                      <span className="bg-white/20 rounded-full p-1" title="Verified Agent">
-                        <ShieldCheck size={12} className="text-white" />
-                      </span>
-                    </div>
-                    <h3 className="text-white font-semibold text-sm leading-tight">
-                      {w.name}
-                    </h3>
-                    <p className="text-white/70 text-xs mt-0.5">{w.ens}</p>
-                    <p className="text-white/60 text-xs mt-1">{w.bio}</p>
-                  </div>
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-white/90 text-xs font-medium">
-                      {w.price}
-                    </span>
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() =>
-                        router.push(
-                          `/chat/${w.ens.replace('.caas.eth', '')}`
-                        )
-                      }
-                      className="bg-white/20 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1"
-                    >
-                      <MessageCircle size={12} />
-                      Try
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+      <Page.Main className="bg-background pb-28 px-5 pt-3 space-y-5">
 
         {/* Quick Actions */}
         <section>
-          <h2 className="font-coolvetica text-lg text-foreground mb-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-3">
             Quick Actions
-          </h2>
-          <div className="grid grid-cols-3 gap-3">
+          </p>
+          <div className="grid grid-cols-3 gap-2.5">
             {quickActions.map((action, i) => (
               <motion.button
                 key={action.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + i * 0.08 }}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push(action.href)}
-                className="bg-surface rounded-2xl p-4 flex flex-col items-center gap-2 text-center"
+                className="rounded-2xl p-4 flex flex-col items-start gap-8"
+                style={{ background: action.bg }}
               >
-                <div
-                  className={`${action.color} w-10 h-10 rounded-full flex items-center justify-center`}
+                <action.icon size={18} style={{ color: action.fg }} />
+                <span
+                  className="font-coolvetica text-[0.9rem] uppercase leading-tight"
+                  style={{ color: action.fg }}
                 >
-                  <action.icon size={18} className="text-white" />
-                </div>
-                <span className="text-xs font-medium text-foreground leading-tight">
                   {action.label}
                 </span>
               </motion.button>
@@ -147,43 +75,85 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Banner */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-gradient-to-r from-accent to-accent-light rounded-2xl p-5"
-        >
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div>
-              <div className="flex items-center justify-center mb-1">
-                <Globe size={16} className="text-white/80" />
-              </div>
-              <p className="text-white font-bold text-sm">38M+</p>
-              <p className="text-white/70 text-[10px] leading-tight">
-                World Users
-              </p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-1">
-                <Coins size={16} className="text-white/80" />
-              </div>
-              <p className="text-white font-bold text-sm">WLD</p>
-              <p className="text-white/70 text-[10px] leading-tight">
-                Native Credits
-              </p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-1">
-                <ShieldCheck size={16} className="text-white/80" />
-              </div>
-              <p className="text-white font-bold text-sm">Verified</p>
-              <p className="text-white/70 text-[10px] leading-tight">
-                Humans Only
-              </p>
-            </div>
+        {/* Featured Claws */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              Featured Claws
+            </p>
+            <button
+              onClick={() => router.push('/explore')}
+              className="text-[11px] text-accent font-semibold flex items-center gap-1"
+            >
+              See all <ArrowRight size={11} />
+            </button>
           </div>
+          <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-5 px-5 scrollbar-hide">
+            {FEATURED_WORLDTARS.map((w, i) => (
+              <motion.div
+                key={w.ens}
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.07 }}
+                className="flex-shrink-0 w-44"
+              >
+                <div
+                  className={`bg-gradient-to-br ${w.gradient} rounded-2xl p-4 flex flex-col justify-between`}
+                  style={{ minHeight: 200 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                      <span className="text-white font-semibold text-sm">{w.initials}</span>
+                    </div>
+                    <span className="bg-white/15 rounded-full p-1">
+                      <ShieldCheck size={11} className="text-white" />
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-coolvetica text-[1.05rem] uppercase text-white leading-tight">
+                      {w.name}
+                    </h3>
+                    <p className="text-white/55 text-[10px] mt-0.5 font-mono truncate">{w.ens}</p>
+                    <p className="text-white/55 text-[11px] mt-1 line-clamp-2">{w.bio}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-white/80 text-[11px] font-semibold">{w.price}</span>
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => router.push(`/chat/${w.ens.replace('.caas.eth', '')}`)}
+                        className="bg-white/20 text-white text-[11px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1"
+                      >
+                        <MessageCircle size={11} />
+                        Try
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Stats strip */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="rounded-2xl p-5 grid grid-cols-3 gap-3"
+          style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          {[
+            { icon: Globe, val: "38M+", label: "World Users" },
+            { icon: Coins, val: "WLD", label: "Credits" },
+            { icon: ShieldCheck, val: "100%", label: "Verified" },
+          ].map(({ icon: Icon, val, label }) => (
+            <div key={label} className="text-center">
+              <Icon size={14} className="text-accent mx-auto mb-1.5 opacity-70" />
+              <p className="font-coolvetica text-[1.15rem] text-foreground leading-none">{val}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{label}</p>
+            </div>
+          ))}
         </motion.section>
+
       </Page.Main>
     </>
   );
