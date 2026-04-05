@@ -1,9 +1,9 @@
 export const CaasLogo = () => (
   <span
-    className="font-coolvetica text-[1.9rem] uppercase leading-none tracking-tight select-none"
+    className="font-coolvetica text-[2rem] uppercase leading-none tracking-tight select-none"
     style={{
-      color: '#e0e5ec',
-      textShadow: '-2px -2px 4px #b3b7bd, 2px 2px 5px rgba(255,255,255,0.95)',
+      color: '#31456a',
+      textShadow: '2px 2px 6px rgba(255,255,255,0.9), -1px -1px 3px #c0c5cc',
     }}
   >
     CaaS

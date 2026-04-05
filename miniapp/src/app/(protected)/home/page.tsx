@@ -5,7 +5,7 @@ import { CaasLogo } from '@/components/CaasLogo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft, Send, MessageCircle, MessagesSquare, Store, User,
+  ArrowLeft, Send, MessageCircle, MessagesSquare, Store,
   Zap, LayoutGrid, Cpu,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -72,17 +72,23 @@ export default function Home() {
 
   return (
     <>
-      <Page.Header className="px-5 pt-6 pb-5" style={{ background: '#e0e5ec' } as React.CSSProperties}>
-        <div className="flex items-center justify-between mb-3">
-          <CaasLogo />
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => router.push('/profile')}
-            className="w-10 h-10 rounded-2xl flex items-center justify-center" style={nmRaisedSm}>
-            <User size={18} style={{ color: '#8a9bb0' }} />
+      <Page.Header className="px-5 pt-6 pb-5" style={{ background: '#e0e5ec', boxShadow: '0 4px 12px rgba(179,183,189,0.35)' } as React.CSSProperties}>
+        <div className="flex items-center justify-between">
+          <div>
+            <CaasLogo />
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-1" style={{ color: '#8a9bb0' }}>
+              Agents as a Service
+            </p>
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.93 }}
+            onClick={() => router.push('/profile')}
+            className="w-12 h-12 rounded-2xl overflow-hidden shrink-0"
+            style={nmRaisedSm}
+          >
+            <img src={MY_AVATAR} alt="my-agent" className="w-full h-full" />
           </motion.button>
         </div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em]" style={{ color: '#b3b7bd' }}>
-          Agents as a Service
-        </p>
       </Page.Header>
 
       <Page.Main className="px-5 pt-4 pb-6 space-y-4" style={{ background: '#e0e5ec' } as React.CSSProperties}>
