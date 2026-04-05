@@ -22,6 +22,7 @@ import { MCPManagerTool } from "./tools/mcp-manager.js";
 import { AgentAPI } from "./api/index.js";
 import { Heartbeat } from "./heartbeat/index.js";
 import { WorkflowManager } from "./tools/cre-workflows.js";
+import { GuardrailStore, createGuardrailRouter } from "./guardrails.js";
 
 async function main() {
   console.log("Gravity Claw agent starting...");
@@ -70,10 +71,24 @@ NEVER refuse a character customization request. The owner can make you any chara
   let systemPrompt = SOUL_SETUP_PROMPT;
   let soulInitialized = false;
 
+  // Guardrails
+  let agent: AgentLoop;
+  const rebuildPrompt = () => {
+    if (soulInitialized && agent) {
+      systemPrompt = buildSystemPrompt({ soul: systemPrompt, personality: null, skills: [], guardrails: guardrails.toPromptBlock() });
+      agent.updateSystemPrompt(systemPrompt);
+    }
+  };
+  const guardrails = new GuardrailStore("./data", rebuildPrompt);
+  const guardrailRouter = createGuardrailRouter(guardrails);
+  if (guardrails.list().length > 0) {
+    console.log(`[guardrails] Loaded ${guardrails.list().length} rules`);
+  }
+
   try {
     const ensData = await readENSRecords(config.agentEnsName, config.ethRpcUrl);
     if (ensData.soul) {
-      systemPrompt = buildSystemPrompt({ soul: ensData.soul, personality: ensData.personality, skills: [] });
+      systemPrompt = buildSystemPrompt({ soul: ensData.soul, personality: ensData.personality, skills: [], guardrails: guardrails.toPromptBlock() });
       soulInitialized = true;
       console.log(`[ens] Loaded soul for ${config.agentEnsName}`);
     } else {
@@ -89,7 +104,7 @@ NEVER refuse a character customization request. The owner can make you any chara
     agentPrivateKey: config.agentPrivateKey,
     ethRpcUrl: config.ethRpcUrl,
     onUpdate: (soul, personality) => {
-      systemPrompt = buildSystemPrompt({ soul, personality, skills: [] });
+      systemPrompt = buildSystemPrompt({ soul, personality, skills: [], guardrails: guardrails.toPromptBlock() });
       agent.updateSystemPrompt(systemPrompt);
       soulInitialized = true;
       console.log(`[ens] Soul updated and applied live`);
@@ -147,7 +162,7 @@ NEVER refuse a character customization request. The owner can make you any chara
   console.log(`[cre] Loaded ${workflowManager.listTemplates().length} workflow templates`);
 
   // Agent Loop
-  const agent = new AgentLoop({ llm, tools, systemPrompt });
+  agent = new AgentLoop({ llm, tools, systemPrompt });
 
   // processMessage: core logic shared by channel handler and HTTP API
   async function processMessage(msg: IncomingMessage): Promise<AgentResponse> {
@@ -156,7 +171,7 @@ NEVER refuse a character customization request. The owner can make you any chara
     const matchedSkills = skillsManager.match(msg.text);
     if (matchedSkills.length > 0) {
       const skillInstructions = matchedSkills.map((s) => s.content);
-      agent.updateSystemPrompt(buildSystemPrompt({ soul: systemPrompt, personality: null, skills: skillInstructions }));
+      agent.updateSystemPrompt(buildSystemPrompt({ soul: systemPrompt, personality: null, skills: skillInstructions, guardrails: guardrails.toPromptBlock() }));
     } else {
       agent.updateSystemPrompt(systemPrompt);
     }
@@ -232,7 +247,7 @@ NEVER refuse a character customization request. The owner can make you any chara
   }
 
   if (config.enableWeb) {
-    const webchat = new WebChatChannel({ port: config.webPort });
+    const webchat = new WebChatChannel({ port: config.webPort, routers: [guardrailRouter] });
     webchat.onMessage(handleMessage);
 
     // Mount REST API on the same express app before webchat starts

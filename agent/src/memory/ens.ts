@@ -142,6 +142,7 @@ export interface SystemPromptInput {
   soul: string | null;
   personality: Record<string, string> | null;
   skills: string[];
+  guardrails?: string;
 }
 
 export function buildSystemPrompt(input: SystemPromptInput): string {
@@ -162,6 +163,9 @@ export function buildSystemPrompt(input: SystemPromptInput): string {
     for (const skill of input.skills) {
       parts.push(skill);
     }
+  }
+  if (input.guardrails) {
+    parts.push(input.guardrails);
   }
   parts.push(
     "\n## Identity Management\n" +
