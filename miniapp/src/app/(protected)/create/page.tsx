@@ -4,473 +4,625 @@ import { Page } from '@/components/PageLayout';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import {
-  ShieldCheck,
-  AtSign,
-  Brain,
+  Check,
+  Send,
+  MessageCircle,
+  Hash,
+  FileText,
+  Database,
   Rocket,
+  Eye,
+  EyeOff,
   ChevronLeft,
   ChevronRight,
-  Check,
-  AlertTriangle,
-  Ban,
-  Info,
-  MessageSquareShare,
+  RefreshCw,
 } from 'lucide-react';
 
-const steps = [
-  { id: 1, label: 'Verify', icon: ShieldCheck },
-  { id: 2, label: 'Name', icon: AtSign },
-  { id: 3, label: 'Channels', icon: MessageSquareShare },
-  { id: 4, label: 'Config', icon: Brain },
-  { id: 5, label: 'Deploy', icon: Rocket },
+/* ── Shadow constants ── */
+const nmRaised   = { background: '#e0e5ec', boxShadow: '6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff' };
+const nmRaisedSm = { background: '#e0e5ec', boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff' };
+const nmInset    = { background: '#e0e5ec', boxShadow: 'inset 5px 5px 10px #a3b1c6, inset -5px -5px 10px #ffffff' };
+const nmInsetSm  = { background: '#e0e5ec', boxShadow: 'inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff' };
+const nmBtn      = { background: '#7b96f5', boxShadow: '6px 6px 16px rgba(80, 100, 190, 0.55), -4px -4px 12px rgba(255,255,255,0.95)', color: '#ffffff' };
+
+/* ── Data ── */
+const STEPS = ['Identity', 'Model', 'Soul', 'Channels', 'Memory', 'Deploy'];
+
+const AVATAR_BGS = ['b6e3f4', 'd1d4f9', 'ffd5dc', 'c0aede', 'ffdfbf', 'b6f4e3', 'f4d1b6', 'd4f4b6'];
+const makeAvatars = () => AVATAR_BGS.map((bg, i) => ({
+  id: `av${i}`,
+  seed: Math.random().toString(36).slice(2, 10),
+  bg,
+}));
+
+// Generated once per browser session — stable across remounts and HMR
+const SESSION_AVATARS = makeAvatars();
+
+const avatarUrl = (seed: string, bg: string) =>
+  `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=${bg}`;
+
+const MODELS = [
+  { id: 'claude', name: 'Claude Sonnet', provider: 'Anthropic', desc: 'Best at reasoning and nuanced writing.',  dot: '#c17a3a' },
+  { id: 'gpt4o',  name: 'GPT-4o',        provider: 'OpenAI',    desc: 'Industry standard. Multimodal ready.',   dot: '#74aa9c' },
+  { id: 'gemini', name: 'Gemini Pro',    provider: 'Google',    desc: 'Fast and great for search-heavy tasks.', dot: '#7b96f5' },
+  { id: 'llama',  name: 'Llama 3.1',     provider: 'Meta',      desc: 'Open source. Maximum data privacy.',     dot: '#6dd5d9' },
 ];
 
-const configQuestions = [
-  "What is this agent's primary purpose?",
-  'What tone should it use? (professional, friendly, concise, etc.)',
-  'What domains or topics should it focus on?',
-  'How should it handle questions outside its scope?',
-  'What languages should it support?',
-  'Should it proactively reach out or only respond?',
-  'What data sources can it reference?',
-  'Describe the ideal interaction with a user.',
-  'What actions can it take autonomously? (payments, bookings, etc.)',
-  'Any specific phrases or branding it should use?',
+const SOULS = [
+  { id: 'professional', name: 'Professional', desc: 'Formal, precise, reliable.',      emoji: '💼' },
+  { id: 'friendly',     name: 'Friendly',      desc: 'Warm and conversational.',         emoji: '😊' },
+  { id: 'creative',     name: 'Creative',       desc: 'Imaginative, unconventional.',     emoji: '🎨' },
+  { id: 'analytical',   name: 'Analytical',    desc: 'Data-driven, methodical.',         emoji: '📊' },
+  { id: 'supportive',   name: 'Supportive',    desc: 'Empathetic, encouraging.',         emoji: '🤝' },
+  { id: 'custom',       name: 'Custom',         desc: 'Write your own personality.',      emoji: '✨' },
 ];
 
-const channels = [
-  { id: 'whatsapp', label: 'WhatsApp', description: 'Respond to messages on WhatsApp Business' },
-  { id: 'telegram', label: 'Telegram', description: 'Operate as a Telegram bot' },
-  { id: 'web', label: 'Web Chat', description: 'Embeddable chat widget for your site' },
-  { id: 'api', label: 'API / x402', description: 'Expose via API with x402 micropayments' },
+const CHANNELS = [
+  { id: 'telegram', name: 'Telegram', desc: 'Deploy as a Telegram bot',        icon: Send,          placeholder: 'Bot token from @BotFather' },
+  { id: 'discord',  name: 'Discord',  desc: 'Deploy as a Discord bot',         icon: Hash,          placeholder: 'Discord bot token' },
+  { id: 'whatsapp', name: 'WhatsApp', desc: 'Via WhatsApp Business API',        icon: MessageCircle, placeholder: 'WhatsApp Business API key' },
+];
+
+const MEMORY = [
+  { id: 'encrypted-md', name: 'Encrypted MD File',  desc: 'Memory stored as an encrypted markdown file. Private and portable.', icon: FileText },
+  { id: '0g-store',     name: '0G Private Store',    desc: 'Decentralized encrypted storage on 0G. Persistent, censorship-resistant.', icon: Database },
 ];
 
 export default function Create() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [direction, setDirection] = useState(1);
+  const [step, setStep] = useState(1);
+  const [dir,  setDir]  = useState(1);
 
-  // Form state
-  const [verified, setVerified] = useState(false);
-  const [ensSubname, setEnsSubname] = useState('');
-  const [selectedChannels, setSelectedChannels] = useState<string[]>(['web']);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [contentBoundaries, setContentBoundaries] = useState('');
+  const [avatars,     setAvatars]     = useState(SESSION_AVATARS);
+  const [agentName,   setAgentName]   = useState('');
+  const [avatar,      setAvatar]      = useState('av0');
+  const [avatarDir,   setAvatarDir]   = useState(0);
+  const [model,       setModel]       = useState('claude');
+  const [soul,        setSoul]        = useState('friendly');
+  const [customSoul,  setCustomSoul]  = useState('');
+  const [channels,    setChannels]    = useState<Record<string, boolean>>({});
+  const [tokens,      setTokens]      = useState<Record<string, string>>({});
+  const [showToken,   setShowToken]   = useState<Record<string, boolean>>({});
+  const [memory,      setMemory]      = useState('encrypted-md');
 
-  const goNext = () => {
-    if (currentStep < 5) {
-      setDirection(1);
-      setCurrentStep((s) => s + 1);
-    }
-  };
+  const goNext = () => { if (step < 6) { setDir(1);  setStep(s => s + 1); } };
+  const goPrev = () => { if (step > 1) { setDir(-1); setStep(s => s - 1); } };
 
-  const goPrev = () => {
-    if (currentStep > 1) {
-      setDirection(-1);
-      setCurrentStep((s) => s - 1);
-    }
-  };
+  const avatarIdx     = avatars.findIndex(a => a.id === avatar);
+  const prevAvatarIdx = (avatarIdx - 1 + avatars.length) % avatars.length;
+  const nextAvatarIdx = (avatarIdx + 1) % avatars.length;
+  const goAvatarPrev  = () => { setAvatarDir(-1); setAvatar(avatars[prevAvatarIdx].id); };
+  const goAvatarNext  = () => { setAvatarDir(1);  setAvatar(avatars[nextAvatarIdx].id); };
+  const regenerateAvatars = () => { setAvatars(makeAvatars()); setAvatar('av0'); setAvatarDir(0); };
 
-  const toggleChannel = (id: string) => {
-    setSelectedChannels((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
-  };
+  const toggleChannel = (id: string) =>
+    setChannels(prev => ({ ...prev, [id]: !prev[id] }));
+
+  const selectedAvatar   = avatars.find(a => a.id === avatar);
+  const selectedModel    = MODELS.find(m => m.id === model);
+  const selectedSoul     = SOULS.find(s => s.id === soul);
+  const activeChannels   = CHANNELS.filter(c => channels[c.id]);
 
   const slideVariants = {
-    enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0 }),
+    enter:  (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0 }),
     center: { x: 0, opacity: 1 },
-    exit: (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0 }),
+    exit:   (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0 }),
   };
 
   return (
     <>
-      <Page.Header className="bg-background px-5 pt-5 pb-3">
-        <h1 className="font-coolvetica text-2xl text-foreground tracking-tight mb-4">
-          Create a Claw
-        </h1>
+      {/* ── Header ── */}
+      <Page.Header className="px-5 pt-6 pb-4 shrink-0" style={{ background: '#e0e5ec' } as React.CSSProperties}>
 
-        {/* Step Indicator */}
-        <div className="flex items-center justify-between gap-1">
-          {steps.map((step, i) => (
-            <div key={step.id} className="flex items-center flex-1">
-              <div className="flex flex-col items-center flex-1">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
-                    currentStep === step.id
-                      ? 'bg-accent text-white'
-                      : currentStep > step.id
-                        ? 'bg-accent/20 text-accent'
-                        : 'bg-surface text-muted-foreground'
-                  }`}
+        {/* Step dots */}
+        <div className="flex items-center gap-1 mb-3">
+          {STEPS.map((_, i) => {
+            const n = i + 1;
+            const active = step === n;
+            const done   = step > n;
+            return (
+              <div key={n} className="flex items-center flex-1">
+                <button
+                  onClick={() => { if (done) { setDir(-1); setStep(n); } }}
+                  className="flex items-center justify-center rounded-full transition-all shrink-0"
+                  style={{
+                    width: active ? 26 : 18, height: active ? 26 : 18,
+                    ...(active ? { background: '#7b96f5', boxShadow: '3px 3px 6px rgba(123,150,245,0.45), -1px -1px 3px #fff' }
+                      : done   ? nmInsetSm
+                      :          nmRaisedSm),
+                  }}
                 >
-                  {currentStep > step.id ? (
-                    <Check size={14} />
-                  ) : (
-                    <step.icon size={14} />
-                  )}
-                </div>
-                <span
-                  className={`text-[10px] mt-1 ${currentStep === step.id ? 'text-accent font-medium' : 'text-muted-foreground'}`}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {i < steps.length - 1 && (
-                <div
-                  className={`h-0.5 w-full mx-1 mb-4 rounded-full transition-colors ${
-                    currentStep > step.id ? 'bg-accent/40' : 'bg-surface-dark'
-                  }`}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </Page.Header>
-
-      <Page.Main className="bg-background pb-28 px-5 pt-4 overflow-hidden">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={currentStep}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          >
-            {/* Step 1: Verify */}
-            {currentStep === 1 && (
-              <div className="flex flex-col items-center text-center pt-6">
-                <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center mb-5">
-                  <ShieldCheck
-                    size={36}
-                    className={verified ? 'text-accent' : 'text-muted-foreground'}
-                  />
-                </div>
-                <h2 className="font-coolvetica text-xl text-foreground mb-2">
-                  Verify Your Humanity
-                </h2>
-                <p className="text-sm text-muted-foreground max-w-xs mb-4">
-                  Only verified humans can create and operate Claw agents.
-                  Your World ID is linked to every agent you deploy.
-                </p>
-
-                <div className="bg-accent/5 border border-accent/20 rounded-xl p-3 mb-4 max-w-xs">
-                  <div className="flex items-start gap-2">
-                    <Info size={14} className="text-accent mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-foreground/70 leading-relaxed text-left">
-                      <strong>Human-operated agents:</strong> Every Claw is traceable to a
-                      verified World ID. This ensures accountability and prevents bot farms.
-                    </p>
-                  </div>
-                </div>
-
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setVerified(true)}
-                  className={`px-8 py-3 rounded-2xl font-bold text-sm transition-colors ${
-                    verified
-                      ? 'bg-accent/10 text-accent'
-                      : 'bg-accent text-white'
-                  }`}
-                >
-                  {verified ? (
-                    <span className="flex items-center gap-2">
-                      <Check size={16} /> Verified with World ID
-                    </span>
-                  ) : (
-                    'Verify with World ID'
-                  )}
-                </motion.button>
-
-                {verified && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 space-y-2"
-                  >
-                    <p className="text-xs text-accent flex items-center gap-1.5">
-                      <Check size={12} /> Unique human confirmed
-                    </p>
-                    <p className="text-xs text-accent flex items-center gap-1.5">
-                      <Check size={12} /> Ready to create agents
-                    </p>
-                  </motion.div>
+                  {done   && <Check size={9} style={{ color: '#7b96f5' }} />}
+                  {active && <span className="text-[9px] font-bold text-white">{n}</span>}
+                </button>
+                {i < STEPS.length - 1 && (
+                  <div className="h-px flex-1 mx-1 rounded-full"
+                    style={{ background: done ? '#7b96f5' : '#c8d0e0' }} />
                 )}
               </div>
-            )}
+            );
+          })}
+        </div>
 
-            {/* Step 2: Name */}
-            {currentStep === 2 && (
-              <div className="pt-6">
-                <h2 className="font-coolvetica text-xl text-foreground mb-2">
-                  Name Your Claw
-                </h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Pick a unique ENS subname for your agent. This is its
-                  public identity on the network.
-                </p>
-                <div className="bg-card-bg rounded-2xl p-4 border border-surface-dark/50">
-                  <label className="text-xs text-muted-foreground font-medium mb-2 block">
-                    ENS Subname
-                  </label>
-                  <div className="flex items-center bg-surface rounded-xl">
-                    <input
-                      type="text"
-                      value={ensSubname}
-                      onChange={(e) =>
-                        setEnsSubname(
-                          e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
-                        )
-                      }
-                      placeholder="my-agent"
-                      className="flex-1 bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none"
-                    />
-                    <span className="text-xs text-muted-foreground pr-4 shrink-0">
-                      .caas.eth
-                    </span>
-                  </div>
-                  {ensSubname && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-xs text-accent mt-2 flex items-center gap-1"
-                    >
-                      <Check size={12} /> {ensSubname}.caas.eth is
-                      available
-                    </motion.p>
-                  )}
-                </div>
-              </div>
-            )}
+        {/* Title */}
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: '#7b96f5' }}>
+          Step {step} of {STEPS.length}
+        </p>
+        <h1 className="font-coolvetica text-[2rem] uppercase leading-none tracking-tight" style={{ color: '#31456a' }}>
+          {STEPS[step - 1]}
+        </h1>
+      </Page.Header>
 
-            {/* Step 3: Channels */}
-            {currentStep === 3 && (
-              <div className="pt-6">
-                <h2 className="font-coolvetica text-xl text-foreground mb-2">
-                  Select Channels
-                </h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Choose where your Claw will operate. You can enable more
-                  channels later.
-                </p>
-                <div className="space-y-3">
-                  {channels.map((ch) => {
-                    const active = selectedChannels.includes(ch.id);
-                    return (
+      {/* ── Main ── */}
+      <Page.Main
+        className="pb-24 px-5 pt-4 overflow-y-auto overflow-x-hidden"
+        style={{ background: '#e0e5ec' } as React.CSSProperties}
+      >
+        {/* Slide content */}
+        <div className="overflow-x-hidden">
+          <AnimatePresence mode="wait" custom={dir}>
+            <motion.div
+              key={step}
+              custom={dir}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+            >
+
+              {/* ───── Step 1: Identity ───── */}
+              {step === 1 && (
+                <div className="space-y-6">
+
+                  {/* Avatar spotlight */}
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-4" style={{ color: '#8a9bb0' }}>
+                      Avatar
+                    </p>
+
+                    {/* Spotlight row */}
+                    <div className="flex items-center justify-center gap-4">
+
+                      {/* Prev */}
                       <motion.button
-                        key={ch.id}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => toggleChannel(ch.id)}
-                        className={`w-full text-left rounded-xl p-4 border transition-colors ${
-                          active
-                            ? 'bg-accent/5 border-accent/30'
-                            : 'bg-card-bg border-surface-dark/50'
-                        }`}
+                        whileTap={{ scale: 0.88 }}
+                        onClick={goAvatarPrev}
+                        aria-label="Previous avatar"
+                        className="w-[76px] h-[76px] rounded-2xl overflow-hidden shrink-0"
+                        style={{
+                          boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff',
+                          filter: 'blur(2px)',
+                          opacity: 0.38,
+                        }}
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-sm font-medium text-foreground">
-                              {ch.label}
-                            </h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {ch.description}
-                            </p>
-                          </div>
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              active
-                                ? 'bg-accent border-accent'
-                                : 'border-surface-dark'
-                            }`}
+                        <img src={avatarUrl(avatars[prevAvatarIdx].seed, avatars[prevAvatarIdx].bg)} alt="" className="w-full h-full" />
+                      </motion.button>
+
+                      {/* Center — single img load */}
+                      <div
+                        className="relative w-[148px] h-[148px] shrink-0 rounded-3xl overflow-hidden"
+                        style={{ boxShadow: '8px 8px 18px #a3b1c6, -8px -8px 18px #ffffff' }}
+                      >
+                        <AnimatePresence mode="sync" custom={avatarDir} initial={false}>
+                          <motion.div
+                            key={avatar}
+                            custom={avatarDir}
+                            variants={{
+                              enter:  (d: number) => ({ x: d === 0 ? 0 : d > 0 ? 148 : -148, opacity: d === 0 ? 0 : 1 }),
+                              center: { x: 0, opacity: 1 },
+                              exit:   (d: number) => ({ x: d === 0 ? 0 : d > 0 ? -148 : 148, opacity: d === 0 ? 0 : 1 }),
+                            }}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{ type: 'spring', stiffness: 420, damping: 38, mass: 0.8 }}
+                            className="absolute inset-0"
                           >
-                            {active && <Check size={12} className="text-white" />}
+                            <img
+                              src={avatarUrl(selectedAvatar!.seed, selectedAvatar!.bg)}
+                              alt="selected avatar"
+                              className="w-full h-full"
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Next */}
+                      <motion.button
+                        whileTap={{ scale: 0.88 }}
+                        onClick={goAvatarNext}
+                        aria-label="Next avatar"
+                        className="w-[76px] h-[76px] rounded-2xl overflow-hidden shrink-0"
+                        style={{
+                          boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff',
+                          filter: 'blur(2px)',
+                          opacity: 0.38,
+                        }}
+                      >
+                        <img src={avatarUrl(avatars[nextAvatarIdx].seed, avatars[nextAvatarIdx].bg)} alt="" className="w-full h-full" />
+                      </motion.button>
+                    </div>
+
+                    {/* Dots + regenerate */}
+                    <div className="flex items-center justify-center gap-3 mt-4">
+                      <div className="flex items-center gap-1.5">
+                        {avatars.map((a, i) => (
+                          <button
+                            key={a.id}
+                            aria-label={`Select avatar ${i + 1}`}
+                            onClick={() => { setAvatarDir(i > avatarIdx ? 1 : -1); setAvatar(a.id); }}
+                            style={{
+                              width: avatar === a.id ? 18 : 6,
+                              height: 6,
+                              borderRadius: 3,
+                              background: avatar === a.id ? '#7b96f5' : '#c8d0e0',
+                              border: 'none',
+                              padding: 0,
+                              transition: 'all 220ms ease',
+                              cursor: 'pointer',
+                            }}
+                          />
+                        ))}
+                      </div>
+
+                      <motion.button
+                        whileTap={{ scale: 0.88 }}
+                        onClick={regenerateAvatars}
+                        aria-label="Regenerate avatars"
+                        className="w-7 h-7 rounded-full flex items-center justify-center"
+                        style={nmRaisedSm}
+                      >
+                        <RefreshCw size={12} style={{ color: '#8a9bb0' }} />
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  {/* Name input */}
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] mb-2" style={{ color: '#8a9bb0' }}>
+                      Agent Name
+                    </p>
+                    <div className="rounded-2xl overflow-hidden" style={nmInset}>
+                      <div className="flex items-center px-5 py-2">
+                        <span className="text-[17px] font-medium pr-1.5 shrink-0 select-none" style={{ color: '#a3b1c6' }}>@</span>
+                        <input
+                          type="text"
+                          value={agentName}
+                          onChange={e => setAgentName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="my-agent"
+                          className="flex-1 bg-transparent py-5 text-[18px] font-medium outline-none placeholder:text-[#c0cad8]"
+                          style={{ color: '#31456a' }}
+                        />
+                        <span className="text-[13px] font-semibold shrink-0 select-none" style={{ color: '#a3b1c6' }}>.caas.eth</span>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {agentName && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                          className="text-[11px] mt-2 flex items-center gap-1.5 pl-1"
+                          style={{ color: '#7b96f5' }}
+                        >
+                          <Check size={11} /> {agentName}.caas.eth is available
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Preview — only when name is set */}
+                  <AnimatePresence>
+                    {agentName && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+                        className="rounded-2xl p-4 flex items-center gap-3"
+                        style={{ background: '#e0e5ec', boxShadow: '8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff' }}
+                      >
+                        {/* Inset well around avatar image */}
+                        <div
+                          className="w-14 h-14 rounded-xl shrink-0 p-[3px]"
+                          style={nmInsetSm}
+                        >
+                          <div className="w-full h-full rounded-lg overflow-hidden">
+                            <img src={avatarUrl(selectedAvatar!.seed, selectedAvatar!.bg)} alt="avatar" className="w-full h-full" />
                           </div>
                         </div>
+                        <div>
+                          <p className="font-coolvetica text-[1.1rem] uppercase leading-none" style={{ color: '#31456a' }}>
+                            {agentName}
+                          </p>
+                          <p className="text-[11px] mt-0.5" style={{ color: '#8a9bb0' }}>{agentName}.caas.eth</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* ───── Step 2: Model ───── */}
+              {step === 2 && (
+                <div className="space-y-3">
+                  {MODELS.map(m => (
+                    <motion.button
+                      key={m.id}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setModel(m.id)}
+                      className="w-full text-left rounded-2xl p-4"
+                      style={model === m.id ? nmInsetSm : nmRaisedSm}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl shrink-0 flex items-center justify-center" style={nmInsetSm}>
+                          <span className="w-3 h-3 rounded-full block" style={{ background: m.dot, boxShadow: `0 0 6px ${m.dot}80` }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-coolvetica text-[1rem] uppercase leading-none" style={{ color: '#31456a' }}>
+                              {m.name}
+                            </p>
+                            {model === m.id && (
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                style={{ background: '#7b96f5', boxShadow: '2px 2px 4px rgba(123,150,245,0.4)' }}>
+                                <Check size={10} color="#fff" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[10px] mt-0.5 font-bold uppercase tracking-wider" style={{ color: m.dot }}>
+                            {m.provider}
+                          </p>
+                          <p className="text-[11px] mt-1 leading-snug" style={{ color: '#8a9bb0' }}>{m.desc}</p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {/* ───── Step 3: Soul ───── */}
+              {step === 3 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    {SOULS.map(s => (
+                      <motion.button
+                        key={s.id}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => setSoul(s.id)}
+                        className="rounded-2xl p-4 flex flex-col text-left relative"
+                        style={soul === s.id ? { ...nmInsetSm, minHeight: 100 } : { ...nmRaisedSm, minHeight: 100 }}
+                      >
+                        {soul === s.id && (
+                          <div className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ background: '#7b96f5', boxShadow: '2px 2px 4px rgba(123,150,245,0.4)' }}>
+                            <Check size={9} color="#fff" />
+                          </div>
+                        )}
+                        <span className="text-xl mb-2">{s.emoji}</span>
+                        <p className="font-coolvetica text-[0.9rem] uppercase leading-none mb-1" style={{ color: '#31456a' }}>
+                          {s.name}
+                        </p>
+                        <p className="text-[10px] leading-snug" style={{ color: '#8a9bb0' }}>{s.desc}</p>
                       </motion.button>
+                    ))}
+                  </div>
+
+                  <AnimatePresence>
+                    {soul === 'custom' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <textarea
+                          value={customSoul}
+                          onChange={e => setCustomSoul(e.target.value)}
+                          placeholder="Describe your agent's personality, tone, and behavior in detail..."
+                          rows={4}
+                          className="w-full px-4 py-3.5 text-[13px] outline-none resize-none rounded-2xl placeholder:text-[#c0cad8]"
+                          style={{ ...nmInset, color: '#31456a' }}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* ───── Step 4: Channels ───── */}
+              {step === 4 && (
+                <div className="space-y-3">
+                  {CHANNELS.map(ch => {
+                    const active = !!channels[ch.id];
+                    return (
+                      <div key={ch.id} className="rounded-2xl overflow-hidden" style={nmRaisedSm}>
+                        <div className="flex items-center gap-3 p-4">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={nmInsetSm}>
+                            <ch.icon size={17} style={{ color: active ? '#7b96f5' : '#a3b1c6' }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-coolvetica text-[0.95rem] uppercase leading-none" style={{ color: '#31456a' }}>
+                              {ch.name}
+                            </p>
+                            <p className="text-[11px] mt-0.5" style={{ color: '#8a9bb0' }}>{ch.desc}</p>
+                          </div>
+                          {/* Toggle */}
+                          <motion.button
+                            whileTap={{ scale: 0.88 }}
+                            onClick={() => toggleChannel(ch.id)}
+                            className="w-12 h-6 rounded-full relative shrink-0"
+                            style={active
+                              ? { background: '#7b96f5', boxShadow: 'inset 2px 2px 4px rgba(60,80,180,0.3)' }
+                              : nmInsetSm
+                            }
+                          >
+                            <motion.div
+                              animate={{ x: active ? 24 : 2 }}
+                              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                              className="absolute top-[3px] w-[18px] h-[18px] rounded-full"
+                              style={active
+                                ? { background: '#fff', boxShadow: '1px 1px 3px rgba(0,0,0,0.15)' }
+                                : { background: '#e0e5ec', boxShadow: '2px 2px 4px #a3b1c6, -1px -1px 3px #fff' }
+                              }
+                            />
+                          </motion.button>
+                        </div>
+
+                        <AnimatePresence>
+                          {active && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-4">
+                                <div className="flex items-center rounded-xl overflow-hidden" style={nmInset}>
+                                  <input
+                                    type={showToken[ch.id] ? 'text' : 'password'}
+                                    value={tokens[ch.id] || ''}
+                                    onChange={e => setTokens(prev => ({ ...prev, [ch.id]: e.target.value }))}
+                                    placeholder={ch.placeholder}
+                                    className="flex-1 bg-transparent px-4 py-3.5 text-[13px] outline-none placeholder:text-[#c0cad8]"
+                                    style={{ color: '#31456a' }}
+                                  />
+                                  <button className="px-4 py-3.5" onClick={() => setShowToken(p => ({ ...p, [ch.id]: !p[ch.id] }))}>
+                                    {showToken[ch.id]
+                                      ? <EyeOff size={14} style={{ color: '#a3b1c6' }} />
+                                      : <Eye size={14} style={{ color: '#a3b1c6' }} />
+                                    }
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     );
                   })}
+                  {activeChannels.length === 0 && (
+                    <p className="text-[12px] text-center pt-1" style={{ color: '#c0cad8' }}>
+                      Enable at least one channel.
+                    </p>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 4: Config + Guardrails */}
-            {currentStep === 4 && (
-              <div className="pt-2">
-                <h2 className="font-coolvetica text-xl text-foreground mb-2">
-                  Configure Your Agent
-                </h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Answer these questions to shape your Claw&apos;s
-                  behavior, tone, and capabilities.
-                </p>
-                <div className="space-y-4 pb-4">
-                  {configQuestions.map((q, i) => (
-                    <div
-                      key={i}
-                      className="bg-card-bg rounded-xl p-3 border border-surface-dark/50"
+              {/* ───── Step 5: Memory ───── */}
+              {step === 5 && (
+                <div className="space-y-3">
+                  {MEMORY.map(m => (
+                    <motion.button
+                      key={m.id}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setMemory(m.id)}
+                      className="w-full text-left rounded-2xl p-4"
+                      style={memory === m.id ? nmInsetSm : nmRaisedSm}
                     >
-                      <label className="text-xs font-medium text-foreground block mb-2">
-                        {i + 1}. {q}
-                      </label>
-                      <textarea
-                        value={answers[i] || ''}
-                        onChange={(e) =>
-                          setAnswers({ ...answers, [i]: e.target.value })
-                        }
-                        placeholder="Your answer..."
-                        rows={2}
-                        className="w-full bg-surface rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent/30 transition-all resize-none"
-                      />
-                    </div>
-                  ))}
-
-                  {/* Content Guardrails Section */}
-                  <div className="border-t border-surface-dark/50 pt-4 mt-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <AlertTriangle size={16} className="text-accent" />
-                      <h3 className="font-semibold text-sm text-foreground">
-                        Content Guardrails
-                      </h3>
-                    </div>
-
-                    <div className="bg-surface rounded-xl p-3 mb-3">
-                      <p className="text-[11px] font-medium text-foreground mb-2">
-                        Default guardrails (always active):
-                      </p>
-                      <ul className="space-y-1.5">
-                        {[
-                          'No financial advice, medical claims, or legal statements',
-                          'AI self-identification when asked',
-                          'Mandatory disclosure at start of every session',
-                          'Operator accountability via World ID',
-                        ].map((rule) => (
-                          <li key={rule} className="flex items-start gap-1.5">
-                            <Ban size={10} className="text-muted-foreground mt-0.5 shrink-0" />
-                            <span className="text-[10px] text-muted-foreground leading-tight">{rule}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="bg-card-bg rounded-xl p-3 border border-surface-dark/50">
-                      <label className="text-xs font-medium text-foreground block mb-2">
-                        Custom guardrails (optional)
-                      </label>
-                      <textarea
-                        value={contentBoundaries}
-                        onChange={(e) => setContentBoundaries(e.target.value)}
-                        placeholder="e.g., Never share user data externally, Don't execute transactions above 10 WLD without confirmation..."
-                        rows={3}
-                        className="w-full bg-surface rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent/30 transition-all resize-none"
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        These rules are added to your Claw&apos;s system prompt.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 5: Deploy */}
-            {currentStep === 5 && (
-              <div className="flex flex-col items-center text-center pt-6">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center mb-5">
-                  <Rocket size={32} className="text-white" />
-                </div>
-                <h2 className="font-coolvetica text-xl text-foreground mb-2">
-                  Ready to Deploy
-                </h2>
-                <p className="text-sm text-muted-foreground max-w-xs mb-6">
-                  Your Claw will go live on the selected channels.
-                  Fund it with WLD to start operating.
-                </p>
-
-                {/* Summary */}
-                <div className="w-full bg-card-bg rounded-2xl p-4 border border-surface-dark/50 text-left mb-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                    Summary
-                  </h3>
-                  <div className="space-y-2.5">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">ENS Name</span>
-                      <span className="text-foreground font-medium">
-                        {ensSubname || 'my-agent'}.caas.eth
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Channels</span>
-                      <span className="text-foreground font-medium">
-                        {selectedChannels.length} selected
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Operator</span>
-                      <span className="text-accent font-medium flex items-center gap-1">
-                        <ShieldCheck size={12} /> Verified (World ID)
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Config</span>
-                      <span className="text-foreground font-medium">
-                        {Object.keys(answers).filter((k) => answers[Number(k)])
-                          .length}
-                        /10 answered
-                      </span>
-                    </div>
-                    {contentBoundaries && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Custom Rules</span>
-                        <span className="text-foreground font-medium">
-                          {contentBoundaries.split(',').length} set
-                        </span>
+                      <div className="flex items-start gap-4">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={nmInsetSm}>
+                          <m.icon size={18} style={{ color: memory === m.id ? '#7b96f5' : '#a3b1c6' }} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-coolvetica text-[1rem] uppercase leading-none" style={{ color: '#31456a' }}>
+                              {m.name}
+                            </p>
+                            {memory === m.id && (
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                                style={{ background: '#7b96f5', boxShadow: '2px 2px 4px rgba(123,150,245,0.4)' }}>
+                                <Check size={10} color="#fff" />
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[12px] mt-1.5 leading-relaxed" style={{ color: '#8a9bb0' }}>{m.desc}</p>
+                        </div>
                       </div>
-                    )}
-                    <div className="border-t border-surface-dark/50 pt-2 mt-2 flex justify-between text-sm">
-                      <span className="text-muted-foreground">Initial Credit</span>
-                      <span className="text-accent font-bold">5 WLD</span>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {/* ───── Step 6: Deploy ───── */}
+              {step === 6 && (
+                <div className="space-y-4">
+                  {/* Agent preview card */}
+                  <div className="rounded-2xl p-4" style={nmRaised}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0" style={nmInsetSm}>
+                        <img src={avatarUrl(selectedAvatar!.seed, selectedAvatar!.bg)} alt={selectedAvatar?.seed} className="w-full h-full" />
+                      </div>
+                      <div>
+                        <p className="font-coolvetica text-[1.2rem] uppercase leading-none" style={{ color: '#31456a' }}>
+                          {agentName || 'my-agent'}
+                        </p>
+                        <p className="text-[11px] mt-0.5" style={{ color: '#8a9bb0' }}>
+                          {agentName || 'my-agent'}.caas.eth
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {[
+                        { label: 'Model',    val: selectedModel?.name,   dot: selectedModel?.dot },
+                        { label: 'Soul',     val: `${selectedSoul?.emoji} ${selectedSoul?.name}` },
+                        { label: 'Channels', val: activeChannels.length ? activeChannels.map(c => c.name).join(', ') : 'None' },
+                        { label: 'Memory',   val: MEMORY.find(m => m.id === memory)?.name },
+                      ].map(row => (
+                        <div key={row.label} className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={nmInsetSm}>
+                          <span className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: '#a3b1c6' }}>
+                            {row.label}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {row.dot && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: row.dot }} />}
+                            <span className="text-[12px] font-medium" style={{ color: '#31456a' }}>{row.val}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
+
+                  {/* Deploy button */}
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    className="w-full py-4 rounded-2xl font-bold text-[15px] flex items-center justify-center gap-2"
+                    style={nmBtn}
+                  >
+                    <Rocket size={17} />
+                    Deploy Agent
+                  </motion.button>
+
+                  <p className="text-center text-[11px]" style={{ color: '#c0cad8' }}>
+                    Your agent will be live within seconds.
+                  </p>
                 </div>
+              )}
 
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full bg-accent text-white font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform"
-                  style={{ boxShadow: "0 4px 28px rgba(234,88,12,0.4)" }}
-                >
-                  Deploy My Claw — 5 WLD
-                </motion.button>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-        {/* Navigation Buttons */}
-        <div className="fixed bottom-24 left-0 right-0 px-5 flex justify-between">
+        {/* ── Back / Continue — inline, always visible ── */}
+        <div className="flex justify-between items-center gap-3 mt-7">
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.96 }}
             onClick={goPrev}
-            className={`flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              currentStep === 1
-                ? 'opacity-0 pointer-events-none'
-                : 'bg-surface text-foreground'
-            }`}
+            className="flex items-center gap-2 px-7 py-4 rounded-2xl text-[15px] font-semibold"
+            style={step === 1
+              ? { opacity: 0, pointerEvents: 'none' as const, ...nmRaisedSm, color: '#8a9bb0' }
+              : { ...nmRaisedSm, color: '#8a9bb0' }
+            }
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={17} />
             Back
           </motion.button>
-          {currentStep < 5 && (
+
+          {step < 6 && (
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.96 }}
               onClick={goNext}
-              className="flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium bg-accent text-white"
+              className="flex items-center justify-center gap-2 w-[120px] h-[36px] py-5 rounded-2xl text-[16px] font-bold"
+              style={nmBtn}
             >
-              Next
-              <ChevronRight size={16} />
+              Continue
             </motion.button>
           )}
         </div>
+
       </Page.Main>
     </>
   );

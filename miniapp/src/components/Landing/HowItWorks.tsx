@@ -8,54 +8,34 @@ const steps = [
   {
     num: "01",
     icon: Fingerprint,
+    iconColor: "#7b96f5",
     title: "VERIFY",
     description: "Prove you're human with World ID.",
-    bg: "#ea580c",
-    fg: "#fff",
-    subFg: "rgba(255,255,255,0.6)",
-    numFg: "rgba(255,255,255,0.07)",
     tag: "IDENTITY",
-    tagBg: "rgba(255,255,255,0.15)",
-    tagFg: "#fff",
   },
   {
     num: "02",
     icon: Settings,
+    iconColor: "#6dd5d9",
     title: "CONFIGURE",
     description: "Name, channels, personality.",
-    bg: "#242424",
-    fg: "#fff",
-    subFg: "rgba(255,255,255,0.5)",
-    numFg: "rgba(255,255,255,0.05)",
     tag: "SETUP",
-    tagBg: "rgba(255,255,255,0.08)",
-    tagFg: "rgba(255,255,255,0.6)",
   },
   {
     num: "03",
     icon: Coins,
+    iconColor: "#7b96f5",
     title: "FUND",
     description: "Top up WLD credits.",
-    bg: "#fbbf24",
-    fg: "#111",
-    subFg: "rgba(0,0,0,0.5)",
-    numFg: "rgba(0,0,0,0.06)",
     tag: "PAYMENT",
-    tagBg: "rgba(0,0,0,0.1)",
-    tagFg: "#111",
   },
   {
     num: "04",
     icon: Rocket,
+    iconColor: "#6dd5d9",
     title: "DEPLOY",
     description: "Go live instantly. No servers.",
-    bg: "#818cf8",
-    fg: "#fff",
-    subFg: "rgba(255,255,255,0.6)",
-    numFg: "rgba(255,255,255,0.07)",
     tag: "LAUNCH",
-    tagBg: "rgba(255,255,255,0.15)",
-    tagFg: "#fff",
   },
 ];
 
@@ -65,8 +45,8 @@ export default function HowItWorks() {
 
   return (
     <section
-      className="flex flex-col justify-center min-h-dvh py-10 px-5"
-      style={{ background: "#111" }}
+      className="flex flex-col justify-center min-h-dvh py-12 px-5"
+      style={{ background: "#e0e5ec" }}
       ref={ref}
     >
       <div className="max-w-sm mx-auto w-full">
@@ -74,14 +54,14 @@ export default function HowItWorks() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          className="mb-5"
+          className="mb-6"
         >
-          <span className="inline-block text-[11px] font-bold uppercase tracking-[0.2em] text-accent mb-3">
+          <span className="inline-block text-[11px] font-bold uppercase tracking-[0.2em] mb-3 gradient-text">
             How It Works
           </span>
           <h2
-            className="font-coolvetica uppercase text-foreground"
-            style={{ fontSize: "clamp(2.6rem,12vw,4rem)", lineHeight: 0.88 }}
+            className="font-coolvetica uppercase"
+            style={{ fontSize: "clamp(2.6rem,12vw,4rem)", lineHeight: 0.88, color: "#31456a" }}
           >
             LIVE IN
             <br />
@@ -91,7 +71,7 @@ export default function HowItWorks() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {steps.map((step, i) => (
             <motion.div
               key={step.title}
@@ -99,7 +79,11 @@ export default function HowItWorks() {
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ delay: i * 0.07, duration: 0.4 }}
               className="rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between"
-              style={{ background: step.bg, minHeight: 148 }}
+              style={{
+                background: "#e0e5ec",
+                boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+                minHeight: 152,
+              }}
             >
               {/* Big bg number */}
               <span
@@ -107,7 +91,7 @@ export default function HowItWorks() {
                 style={{
                   fontSize: "4.5rem",
                   lineHeight: 1,
-                  color: step.numFg,
+                  color: "rgba(163, 177, 198, 0.35)",
                 }}
               >
                 {step.num}
@@ -115,25 +99,28 @@ export default function HowItWorks() {
 
               {/* Tag */}
               <span
-                className="relative z-10 self-start text-[9px] font-bold uppercase tracking-[0.15em] px-2 py-1 rounded-full"
-                style={{ background: step.tagBg, color: step.tagFg }}
+                className="relative z-10 self-start text-[9px] font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full"
+                style={{
+                  color: step.iconColor,
+                  background: "#e0e5ec",
+                  boxShadow: "inset 2px 2px 4px #a3b1c6, inset -2px -2px 4px #ffffff",
+                }}
               >
                 {step.tag}
               </span>
 
               {/* Content */}
               <div className="relative z-10 mt-3">
-                <step.icon size={18} style={{ color: step.fg, opacity: 0.65, marginBottom: 6 }} />
-                <p
-                  className="font-coolvetica uppercase leading-tight text-[1.25rem]"
-                  style={{ color: step.fg }}
+                <div
+                  className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
+                  style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
                 >
+                  <step.icon size={15} style={{ color: step.iconColor }} />
+                </div>
+                <p className="font-coolvetica uppercase leading-tight text-[1.2rem]" style={{ color: "#31456a" }}>
                   {step.title}
                 </p>
-                <p
-                  className="text-[11px] mt-1 leading-snug"
-                  style={{ color: step.subFg }}
-                >
+                <p className="text-[11px] mt-1 leading-snug" style={{ color: "#8a9bb0" }}>
                   {step.description}
                 </p>
               </div>

@@ -137,7 +137,7 @@ export default function ChatPage() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            <h2 className="font-semibold text-sm text-foreground truncate">
+            <h2 className="font-inter font-semibold text-sm text-foreground truncate">
               {data.name}
             </h2>
             <VerificationBadge status={data.verification} size="sm" />

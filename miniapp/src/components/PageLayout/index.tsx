@@ -8,7 +8,10 @@ import { twMerge } from 'tailwind-merge';
  */
 export const Page = (props: { children: ReactNode; className?: string }) => {
   return (
-    <div className={twMerge(clsx('flex h-dvh flex-col', props.className))}>
+    <div
+      className={twMerge(clsx('flex h-dvh flex-col', props.className))}
+      style={{ background: '#e0e5ec' }}
+    >
       {props.children}
     </div>
   );
@@ -18,7 +21,7 @@ const Header = (props: { children: ReactNode; className?: string }) => {
   return (
     <header
       className={twMerge(
-        'bg-background flex flex-col justify-center px-6 pt-6 pb-3 z-10',
+        'bg-background flex flex-col justify-center px-5 pt-6 pb-4 z-10',
         clsx(props.className),
       )}
     >
@@ -31,7 +34,7 @@ const Main = (props: { children: ReactNode; className?: string }) => {
   return (
     <main
       className={twMerge(
-        clsx('grow overflow-y-auto p-6 pt-3', props.className),
+        clsx('grow overflow-y-auto px-5 py-5', props.className),
       )}
     >
       {props.children}

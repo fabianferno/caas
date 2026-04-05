@@ -33,77 +33,122 @@ export default function Hero() {
   return (
     <section
       ref={containerRef}
-      className="flex flex-col min-h-dvh bg-background"
+      className="flex flex-col min-h-dvh"
+      style={{ background: "#e0e5ec" }}
     >
       {/* Navbar */}
-      <div className="h-logo flex items-center justify-between px-5 pt-6 pb-2 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center overflow-hidden">
+      <div className="h-logo flex items-center justify-between px-5 pt-6 pb-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden"
+            style={{
+              background: "#7b96f5",
+              boxShadow: "4px 4px 8px #a3b1c6, -2px -2px 6px #ffffff",
+            }}
+          >
             <svg viewBox="0 0 1024 1024" className="w-[22px] h-[22px]" fill="white">
               <path d={LOGO_PATH} />
             </svg>
           </div>
-          <span className="font-coolvetica text-[1.65rem] uppercase tracking-tight leading-none text-white">
+          <span className="font-coolvetica text-[1.65rem] uppercase tracking-tight leading-none" style={{ color: "#31456a" }}>
             CaaS
           </span>
         </div>
-        <span className="text-[10px] text-white/30 border border-white/10 rounded-full px-3 py-1 uppercase tracking-[0.18em]">
+        <span
+          className="text-[10px] uppercase tracking-[0.18em] px-3 py-1 rounded-full"
+          style={{
+            color: "#8a9bb0",
+            background: "#e0e5ec",
+            boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff",
+          }}
+        >
           Beta
         </span>
       </div>
 
       {/* Headline */}
       <div className="px-5 pt-2 shrink-0">
-        <p className="h-sub text-[11px] font-bold uppercase tracking-[0.22em] text-accent mb-2">
+        <p className="h-sub text-[11px] font-bold uppercase tracking-[0.22em] mb-2 gradient-text">
           Agents as a Service
         </p>
         <h1
-          className="font-coolvetica uppercase text-white"
-          style={{ fontSize: "clamp(3.6rem,18vw,5.8rem)", lineHeight: 0.84 }}
+          className="font-coolvetica uppercase"
+          style={{ fontSize: "clamp(3.6rem,18vw,5.8rem)", lineHeight: 0.84, color: "#31456a" }}
         >
           <span className="block overflow-hidden"><span className="h-line block">DEPLOY</span></span>
           <span className="block overflow-hidden"><span className="h-line block">YOUR</span></span>
-          <span className="block overflow-hidden text-accent"><span className="h-line block">AGENT.</span></span>
+          <span className="block overflow-hidden"><span className="h-line block gradient-text">AGENT.</span></span>
         </h1>
       </div>
 
-      {/* Spacer — pushes robot toward center */}
-      <div className="flex-1" />
-
-      {/* Robot — fixed height so camera back-fit fills it properly */}
-      <div className="h-robot shrink-0" style={{ height: 300 }}>
-        <ArmViewer height={300} />
+      {/* Robot — fills available space between headline and cards */}
+      <div className="h-robot flex-1 min-h-0" style={{ minHeight: 220 }}>
+        <ArmViewer height="100%" />
       </div>
 
-      {/* Spacer — balances vertical space below robot */}
-      <div className="flex-1" />
+      {/* Bottom block — stat cards + CTA */}
+      <div className="shrink-0 px-5 pb-8">
 
-      {/* Bottom block — cards + CTA */}
-      <div className="shrink-0 px-5 pb-9">
         {/* 3 stat cards */}
-        <div className="h-cards grid grid-cols-3 gap-2.5 mb-3">
+        <div className="h-cards grid grid-cols-3 gap-3 mb-4">
 
-          <div className="rounded-2xl p-3.5 flex flex-col justify-between bg-accent min-h-[104px]">
-            <Globe size={17} color="rgba(255,255,255,0.7)" />
+          <div
+            className="rounded-2xl p-3.5 flex flex-col justify-between"
+            style={{
+              background: "#e0e5ec",
+              boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+              minHeight: 104,
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+            >
+              <Globe size={15} style={{ color: "#7b96f5" }} />
+            </div>
             <div>
-              <p className="font-coolvetica text-[1.55rem] text-white leading-none">38M+</p>
-              <p className="text-[10px] text-white/55 uppercase tracking-wide mt-0.5">Users</p>
+              <p className="font-coolvetica text-[1.55rem] leading-none" style={{ color: "#31456a" }}>38M+</p>
+              <p className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#8a9bb0" }}>Users</p>
             </div>
           </div>
 
-          <div className="rounded-2xl p-3.5 flex flex-col justify-between bg-indigo min-h-[104px]">
-            <Zap size={17} color="rgba(255,255,255,0.7)" />
+          <div
+            className="rounded-2xl p-3.5 flex flex-col justify-between"
+            style={{
+              background: "#e0e5ec",
+              boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+              minHeight: 104,
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+            >
+              <Zap size={15} style={{ color: "#6dd5d9" }} />
+            </div>
             <div>
-              <p className="font-coolvetica text-[1.15rem] text-white leading-tight">x402</p>
-              <p className="text-[10px] text-white/55 uppercase tracking-wide mt-0.5">Protocol</p>
+              <p className="font-coolvetica text-[1.15rem] leading-tight" style={{ color: "#31456a" }}>x402</p>
+              <p className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#8a9bb0" }}>Protocol</p>
             </div>
           </div>
 
-          <div className="rounded-2xl p-3.5 flex flex-col justify-between bg-cat-yellow min-h-[104px]">
-            <ShieldCheck size={17} color="rgba(0,0,0,0.4)" />
+          <div
+            className="rounded-2xl p-3.5 flex flex-col justify-between"
+            style={{
+              background: "#e0e5ec",
+              boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+              minHeight: 104,
+            }}
+          >
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+            >
+              <ShieldCheck size={15} style={{ color: "#7b96f5" }} />
+            </div>
             <div>
-              <p className="font-coolvetica text-[1.15rem] text-cat-yellow-foreground leading-tight">World</p>
-              <p className="text-[10px] text-black/40 uppercase tracking-wide mt-0.5">Verified</p>
+              <p className="font-coolvetica text-[1.15rem] leading-tight" style={{ color: "#31456a" }}>World</p>
+              <p className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#8a9bb0" }}>Verified</p>
             </div>
           </div>
 
@@ -112,8 +157,7 @@ export default function Hero() {
         {/* CTA */}
         <Link
           href="/create"
-          className="h-cta group w-full inline-flex items-center justify-center gap-2 bg-accent text-white font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform"
-          style={{ boxShadow: "0 4px 28px rgba(234,88,12,0.4)" }}
+          className="h-cta group w-full inline-flex items-center justify-center gap-2 font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform text-white nm-btn-accent"
         >
           Create Your Claw
           <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />

@@ -154,10 +154,10 @@ export default function ArmViewer({ height = 320 }: { height?: number | string }
           camera={{ position: [0, 0, 5], fov: 50 }}
           gl={{ alpha: true, antialias: true }}
         >
-          <ambientLight intensity={1.4} />
-          <directionalLight position={[4, 6, 4]} intensity={2.8} color="#ffffff" />
-          <directionalLight position={[-3, 1, -2]} intensity={1.0} color="#f97316" />
-          <pointLight position={[0, 3, 1]} intensity={1.5} color="#f97316" />
+          <ambientLight intensity={1.8} />
+          <directionalLight position={[4, 6, 4]} intensity={2.5} color="#ffffff" />
+          <directionalLight position={[-3, 1, -2]} intensity={0.8} color="#c8d8ff" />
+          <pointLight position={[0, 3, 1]} intensity={1.2} color="#7b96f5" />
           <Suspense fallback={null}>
             <RobotModel />
             <Environment preset="city" />
