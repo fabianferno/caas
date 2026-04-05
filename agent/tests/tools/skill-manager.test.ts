@@ -139,5 +139,18 @@ describe("SkillManagerTool", () => {
       const raw = fs.readFileSync(filePath, "utf-8");
       expect(raw).toContain('description: "Say \\"hello\\" and: done"');
     });
+
+    it("skill_add handles description with newlines", async () => {
+      registry.setContext({ userId: OWNER_ID });
+      await getHandler("skill_add")({
+        name: "newline-test",
+        description: "line one\nline two",
+        triggers: ["trigger\nwith newline"],
+        content: "content",
+      });
+      const raw = fs.readFileSync(path.join(skillsDir, "newline-test.md"), "utf-8");
+      expect(raw).toContain("\\n");
+      expect(raw.split("\n").filter(l => l.startsWith("description:")).length).toBe(1);
+    });
   });
 });

@@ -58,9 +58,17 @@ export class SkillManagerTool {
           if (!/^[a-zA-Z0-9-]+$/.test(name)) {
             return "Error: Skill name must be alphanumeric with hyphens only.";
           }
-          const escapedDesc = description.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+          const escapedDesc = description
+            .replace(/\\/g, "\\\\")
+            .replace(/\r/g, "\\r")
+            .replace(/\n/g, "\\n")
+            .replace(/"/g, '\\"');
           const triggerLines = triggers.map((t) => {
-            const escaped = t.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+            const escaped = t
+              .replace(/\\/g, "\\\\")
+              .replace(/\r/g, "\\r")
+              .replace(/\n/g, "\\n")
+              .replace(/"/g, '\\"');
             return `  - "${escaped}"`;
           }).join("\n");
           const md = `---\nname: ${name}\ndescription: "${escapedDesc}"\ntriggers:\n${triggerLines}\n---\n${content}`;
