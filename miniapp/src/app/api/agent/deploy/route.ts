@@ -8,6 +8,7 @@ const OG_RPC = process.env.OG_RPC_URL!;
 const OG_INDEXER = process.env.OG_STORAGE_URL!;
 const DEPLOYER_KEY = process.env.OG_DEPLOYER_PRIVATE_KEY!;
 const CONTRACT = process.env.AGENT_NFT_CONTRACT_ADDRESS!;
+const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || "http://localhost:4000";
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
@@ -17,9 +18,22 @@ export async function POST(req: NextRequest) {
     skills: string;
     config: string;
     aesKeyHex: string;
+    // Channel tokens (per-agent, passed to orchestrator)
+    telegramBotToken?: string;
+    discordBotToken?: string;
+    enableWhatsApp?: boolean;
+    // Avatar + model metadata
+    avatarSeed?: string;
+    avatarBg?: string;
+    model?: string;
+    memoryType?: string;
   };
 
-  const { agentName, ownerAddress, soul, skills, config, aesKeyHex } = body;
+  const {
+    agentName, ownerAddress, soul, skills, config, aesKeyHex,
+    telegramBotToken, discordBotToken, enableWhatsApp,
+    avatarSeed, avatarBg, model, memoryType,
+  } = body;
 
   if (!agentName || !ownerAddress || !soul || !aesKeyHex) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
@@ -85,12 +99,52 @@ export async function POST(req: NextRequest) {
         );
         emit({ step: 3, status: "done", txHash: inftTxHash });
 
+        // Step 4: Start agent container via orchestrator
+        emit({ step: 4, status: "start" });
+        const orchRes = await fetch(`${ORCHESTRATOR_URL}/agents`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            agentName,
+            telegramBotToken: telegramBotToken || undefined,
+            discordBotToken: discordBotToken || undefined,
+            enableWhatsApp: enableWhatsApp || false,
+            soul,
+            avatarSeed: avatarSeed || undefined,
+            avatarBg: avatarBg || undefined,
+            model: model || undefined,
+            memoryType: memoryType || undefined,
+          }),
+        });
+
+        if (!orchRes.ok) {
+          const errBody = await orchRes.json().catch(() => ({ error: "Unknown orchestrator error" }));
+          throw new Error(`Orchestrator: ${errBody.error || orchRes.statusText}`);
+        }
+
+        const agentRecord = await orchRes.json();
+        emit({
+          step: 4,
+          status: "done",
+          agentId: agentRecord.id,
+          hostPort: agentRecord.hostPort,
+          walletAddress: agentRecord.walletAddress,
+          agentkit: agentRecord.agentkit,
+        });
+
         emit({
           done: true,
           tokenId: tokenId.toString(),
           merkleRoot,
           txHashes: [receipt.hash, inftTxHash, storageTxHash],
           storageHashes: intelligentData.map((d) => d.dataHash),
+          agent: {
+            id: agentRecord.id,
+            hostPort: agentRecord.hostPort,
+            walletAddress: agentRecord.walletAddress,
+            ensName: agentRecord.agentEnsName,
+            agentkit: agentRecord.agentkit,
+          },
         });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);

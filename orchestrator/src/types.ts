@@ -5,6 +5,11 @@ export interface CreateAgentRequest {
   telegramBotToken?: string;
   discordBotToken?: string;
   enableWhatsApp?: boolean;
+  soul?: string; // personality/system prompt text
+  avatarSeed?: string; // DiceBear avatar seed for profile photo
+  avatarBg?: string; // DiceBear background color hex (no #)
+  model?: string; // LLM model id (e.g. "qwen")
+  memoryType?: string; // "encrypted-md" | "0g-store"
 }
 
 export type AgentStatus = "running" | "stopped" | "error" | "creating";
@@ -20,6 +25,11 @@ export interface AgentRecord {
   containerId: string;
   walletAddress: string; // public address of the generated keypair
   agentkitRegistered: boolean;
+  soul?: string;
+  avatarSeed?: string;
+  avatarBg?: string;
+  model?: string;
+  memoryType?: string;
 }
 
 // Full env config resolved for a container (per-agent + shared)

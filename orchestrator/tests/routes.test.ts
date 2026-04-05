@@ -16,6 +16,14 @@ vi.mock("../src/docker.js", () => ({
   restartContainer: vi.fn().mockResolvedValue(undefined),
   getContainerStatus: vi.fn().mockResolvedValue("running"),
   getContainerLogs: vi.fn().mockResolvedValue("fake log output"),
+  execInContainer: vi.fn().mockResolvedValue({
+    stream: {
+      on: vi.fn((event: string, cb: Function) => {
+        if (event === "end") setTimeout(() => cb(), 10);
+      }),
+    },
+    inspect: vi.fn().mockResolvedValue({ ExitCode: 0 }),
+  }),
 }));
 
 let server: http.Server;

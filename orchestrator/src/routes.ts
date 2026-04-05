@@ -110,6 +110,11 @@ export function createRouter(store: AgentStore, config: OrchestratorConfig): Rou
         containerId,
         walletAddress: wallet.address,
         agentkitRegistered: false,
+        soul: body.soul,
+        avatarSeed: body.avatarSeed,
+        avatarBg: body.avatarBg,
+        model: body.model,
+        memoryType: body.memoryType,
       };
 
       store.save(record);

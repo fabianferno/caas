@@ -24,6 +24,7 @@ const DEPLOY_STEPS: DeployStep[] = [
   { label: "Uploading to 0G Storage", status: "pending" },
   { label: "Minting INFT on 0G Chain", status: "pending" },
   { label: "Writing ENS Records", status: "pending" },
+  { label: "Starting Agent Container", status: "pending" },
 ];
 
 /* ── Shadow constants ── */
@@ -137,9 +138,11 @@ export default function Create() {
       const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(keyMaterial));
       const aesKeyHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
 
-      const soulContent = selectedSoul
-        ? `You are a ${selectedSoul.name} AI assistant. ${selectedSoul.desc}`
-        : "You are a helpful AI assistant.";
+      const soulContent = soul === 'custom' && customSoul
+        ? customSoul
+        : selectedSoul
+          ? `You are a ${selectedSoul.name} AI assistant. ${selectedSoul.desc}`
+          : "You are a helpful AI assistant.";
       const skillsContent = JSON.stringify({ model: selectedModel?.id, channels: activeChannels.map(c => c.id) });
       const configContent = JSON.stringify({ name: agentName, memory, soul: selectedSoul?.id });
 
@@ -149,12 +152,20 @@ export default function Create() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           agentName,
-          // TODO: replace with user's wallet address from MiniKit
           ownerAddress: process.env.NEXT_PUBLIC_DEFAULT_OWNER_ADDRESS ?? "0x000000000000000000000000000000000000dEaD",
           soul: soulContent,
           skills: skillsContent,
           config: configContent,
           aesKeyHex,
+          // Channel tokens for the orchestrator
+          telegramBotToken: tokens['telegram'] || undefined,
+          discordBotToken: tokens['discord'] || undefined,
+          enableWhatsApp: channels['whatsapp'] || false,
+          // Avatar + model metadata
+          avatarSeed: selectedAvatar?.seed,
+          avatarBg: selectedAvatar?.bg,
+          model: selectedModel?.id,
+          memoryType: memory,
         }),
       });
 
