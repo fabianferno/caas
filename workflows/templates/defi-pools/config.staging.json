@@ -1,0 +1,9 @@
+{
+  "schedule": "{{cronSchedule}}",
+  "tokenAddresses": "{{tokenAddresses}}",
+  "tokenSymbols": "{{tokenSymbols}}",
+  "tokenDecimals": "{{tokenDecimals}}",
+  "coingeckoIds": "{{coingeckoIds}}",
+  "factoryAddress": "{{factoryAddress}}",
+  "chainName": "{{chainName}}"
+}

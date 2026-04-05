@@ -1,0 +1,9 @@
+{
+  "schedule": "{{cronSchedule}}",
+  "agentAddress": "{{agentAddress}}",
+  "tokenAddresses": "{{tokenAddresses}}",
+  "tokenSymbols": "{{tokenSymbols}}",
+  "tokenDecimals": "{{tokenDecimals}}",
+  "factoryAddress": "{{factoryAddress}}",
+  "chainName": "{{chainName}}"
+}

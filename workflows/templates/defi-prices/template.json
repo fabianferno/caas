@@ -1,0 +1,24 @@
+{
+  "name": "defi-prices",
+  "description": "Fetch current token prices from CoinGecko API with consensus aggregation. Returns USD prices and 24h changes for configured tokens.",
+  "category": "defi",
+  "trigger": "cron",
+  "resultMode": "http-callback",
+  "parameters": {
+    "coingeckoIds": {
+      "type": "string",
+      "description": "Comma-separated CoinGecko token IDs (e.g. ethereum,usd-coin,chainlink)",
+      "required": true
+    },
+    "tokenSymbols": {
+      "type": "string",
+      "description": "Comma-separated token symbols matching coingeckoIds order (e.g. WETH,USDC,LINK)",
+      "required": true
+    },
+    "cronSchedule": {
+      "type": "string",
+      "description": "Cron expression for trigger schedule",
+      "default": "*/30 * * * * *"
+    }
+  }
+}
