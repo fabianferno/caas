@@ -8,7 +8,8 @@ import {
 import type { WorldtarData } from '@/lib/worldtars-data';
 import { motion } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   ArrowLeft,
   Send,
@@ -17,18 +18,26 @@ import {
   Clock,
   Flag,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 
 interface Message {
-  id: number;
+  id: string;
   from: 'user' | 'agent' | 'system';
   text: string;
   time: string;
 }
 
+function formatTime(s: number): string {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
 export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: session } = useSession();
   const ensName = params.ensName as string;
   const data: WorldtarData = WORLDTAR_LOOKUP[ensName] || {
     name: ensName,
@@ -45,69 +54,121 @@ export default function ChatPage() {
   };
 
   const disclosure = getDisclosureMessage(data);
+  const conversationId = useRef(crypto.randomUUID());
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [voiceMode, setVoiceMode] = useState(false);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 0,
+      id: 'system-0',
       from: 'system',
       text: disclosure,
       time: '',
     },
     {
-      id: 1,
+      id: 'greeting-0',
       from: 'agent',
       text: data.greeting,
       time: '0:00',
     },
-    {
-      id: 2,
-      from: 'user',
-      text: "What can you help me with?",
-      time: '0:05',
-    },
-    {
-      id: 3,
-      from: 'agent',
-      text: "I can help with a lot! Tell me what you need — research, scheduling, transactions, or just a conversation. I'm here 24/7.",
-      time: '0:12',
-    },
   ]);
+  const [sessionSeconds, setSessionSeconds] = useState(0);
 
-  const [sessionSeconds, setSessionSeconds] = useState(18);
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  };
+  // Session timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSessionSeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
-    const newMsg: Message = {
-      id: messages.length + 1,
+  const sendMessage = async () => {
+    const text = input.trim();
+    if (!text || isLoading) return;
+
+    const userId = session?.user?.id || session?.user?.walletAddress || 'anonymous';
+
+    const userMsg: Message = {
+      id: crypto.randomUUID(),
       from: 'user',
-      text: input.trim(),
-      time: formatTime(sessionSeconds + 3),
+      text,
+      time: formatTime(sessionSeconds),
     };
-    setMessages([...messages, newMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
-    setSessionSeconds((s) => s + 3);
+    setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ensName,
+          conversationId: conversationId.current,
+          userId,
+          text,
+        }),
+      });
+
+      const resData = await res.json();
+
+      if (!res.ok) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            from: 'system',
+            text: resData.error || 'Something went wrong. Please try again.',
+            time: formatTime(sessionSeconds),
+          },
+        ]);
+        return;
+      }
+
+      if (!resData.text) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            from: 'system',
+            text: 'Invalid response from agent.',
+            time: formatTime(sessionSeconds),
+          },
+        ]);
+        return;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
-          id: prev.length + 1,
+          id: crypto.randomUUID(),
           from: 'agent',
-          text: "Great question. Let me look into that for you... I'd say the best approach depends on your specific needs. Want me to dig deeper?",
-          time: formatTime(sessionSeconds + 8),
+          text: resData.text,
+          time: formatTime(sessionSeconds),
         },
       ]);
-      setSessionSeconds((s) => s + 8);
-    }, 1500);
+    } catch (err) {
+      console.error('Chat API error:', err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          from: 'system',
+          text: 'Network error. Check your connection and try again.',
+          time: formatTime(sessionSeconds),
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const estimatedCost =
@@ -206,6 +267,21 @@ export default function ChatPage() {
             )}
           </motion.div>
         ))}
+
+        {/* Typing indicator */}
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-start"
+          >
+            <div className="bg-surface border border-surface-dark/30 rounded-2xl rounded-bl-md px-4 py-3">
+              <Loader2 size={16} className="text-muted-foreground animate-spin" />
+            </div>
+          </motion.div>
+        )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Bar */}
@@ -217,12 +293,14 @@ export default function ChatPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
             placeholder="Type a message..."
-            className="flex-1 bg-surface rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent/30 transition-all"
+            disabled={isLoading}
+            className="flex-1 bg-surface rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent/30 transition-all disabled:opacity-50"
           />
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={sendMessage}
-            className="bg-accent p-2.5 rounded-xl"
+            disabled={isLoading}
+            className="bg-accent p-2.5 rounded-xl disabled:opacity-50"
           >
             <Send size={18} className="text-white" />
           </motion.button>
