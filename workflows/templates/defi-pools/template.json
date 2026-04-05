@@ -1,0 +1,44 @@
+{
+  "name": "defi-pools",
+  "description": "Scan Uniswap V2 pools for all configured token pairs. Reads reserves, computes TVL, price ratios, and imbalance percentages to identify yield opportunities.",
+  "category": "defi",
+  "trigger": "cron",
+  "resultMode": "http-callback",
+  "parameters": {
+    "tokenAddresses": {
+      "type": "string",
+      "description": "Comma-separated ERC20 token addresses",
+      "required": true
+    },
+    "tokenSymbols": {
+      "type": "string",
+      "description": "Comma-separated token symbols matching tokenAddresses order",
+      "required": true
+    },
+    "tokenDecimals": {
+      "type": "string",
+      "description": "Comma-separated token decimals matching tokenAddresses order",
+      "required": true
+    },
+    "coingeckoIds": {
+      "type": "string",
+      "description": "Comma-separated CoinGecko IDs matching tokenAddresses order",
+      "required": true
+    },
+    "factoryAddress": {
+      "type": "string",
+      "description": "Uniswap V2 Factory contract address",
+      "required": true
+    },
+    "chainName": {
+      "type": "string",
+      "description": "Target chain selector name",
+      "default": "ethereum-testnet-sepolia"
+    },
+    "cronSchedule": {
+      "type": "string",
+      "description": "Cron expression for trigger schedule",
+      "default": "*/30 * * * * *"
+    }
+  }
+}

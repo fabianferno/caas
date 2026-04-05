@@ -1,0 +1,5 @@
+{
+  "schedule": "{{cronSchedule}}",
+  "coingeckoIds": "{{coingeckoIds}}",
+  "tokenSymbols": "{{tokenSymbols}}"
+}
