@@ -17,6 +17,7 @@ interface MCPConfig {
 
 export class MCPBridge {
   private clients = new Map<string, Client>();
+  private serverTools = new Map<string, string[]>();
   private configPath: string;
 
   constructor(configPath: string) {
@@ -38,6 +39,7 @@ export class MCPBridge {
     for (const serverConfig of config.servers) {
       try {
         const tools = await this.connectServer(serverConfig);
+        this.serverTools.set(serverConfig.name, tools.map((t) => t.name));
         allTools.push(...tools);
         console.log(`[mcp] Connected to ${serverConfig.name}: ${tools.length} tools`);
       } catch (err) {
@@ -45,6 +47,26 @@ export class MCPBridge {
       }
     }
     return allTools;
+  }
+
+  async addServer(config: MCPServerConfig): Promise<RegisteredTool[]> {
+    if (this.clients.has(config.name)) {
+      throw new Error(`MCP server "${config.name}" is already connected.`);
+    }
+    const tools = await this.connectServer(config);
+    this.serverTools.set(config.name, tools.map((t) => t.name));
+    console.log(`[mcp] Connected to ${config.name}: ${tools.length} tools`);
+    return tools;
+  }
+
+  async removeServer(name: string): Promise<string[]> {
+    const client = this.clients.get(name);
+    if (!client) throw new Error(`MCP server "${name}" not found.`);
+    try { await client.close(); } catch { console.warn(`[mcp] Error closing ${name}`); }
+    this.clients.delete(name);
+    const toolNames = this.serverTools.get(name) ?? [];
+    this.serverTools.delete(name);
+    return toolNames;
   }
 
   private async connectServer(config: MCPServerConfig): Promise<RegisteredTool[]> {
@@ -74,7 +96,9 @@ export class MCPBridge {
           arguments: args as Record<string, unknown>,
         });
         if (result.content && Array.isArray(result.content)) {
-          return result.content.map((c: any) => (c.type === "text" ? c.text : JSON.stringify(c))).join("\n");
+          return result.content
+            .map((c: any) => (c.type === "text" ? c.text : JSON.stringify(c)))
+            .join("\n");
         }
         return JSON.stringify(result);
       },
@@ -86,5 +110,6 @@ export class MCPBridge {
       try { await client.close(); } catch { console.warn(`[mcp] Error closing ${name}`); }
     }
     this.clients.clear();
+    this.serverTools.clear();
   }
 }
