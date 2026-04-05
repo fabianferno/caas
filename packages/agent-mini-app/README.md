@@ -180,7 +180,7 @@ interface AgentAppConfig {
   defaultPrice?: string;    // Required when using openApiSpec
 
   // Optional
-  caasApiUrl?: string;      // Override CaaS platform URL (default: https://caas.world)
+  caasApiUrl?: string;      // Override CaaS platform URL (default: https://romario.crevn.xyz)
   facilitatorUrl?: string;  // x402 facilitator for payment verification
 }
 

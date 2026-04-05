@@ -5,7 +5,7 @@ import { parseOpenApiSpec } from "./openapi";
 import type { AgentAppConfig, Skill } from "../types";
 
 const CAAS_NAMESPACE = "/_caas";
-const DEFAULT_CAAS_API_URL = "https://caas.world";
+const DEFAULT_CAAS_API_URL = "https://romario.crevn.xyz";
 
 async function resolveSkills(config: AgentAppConfig): Promise<Skill[]> {
   if (config.skills && config.skills.length > 0) return config.skills;

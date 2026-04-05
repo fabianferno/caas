@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 
-const DEFAULT_CAAS_API_URL = "https://caas.world";
+const DEFAULT_CAAS_API_URL = "https://romario.crevn.xyz";
 
 const program = new Command();
 
