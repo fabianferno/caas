@@ -17,6 +17,7 @@ import { Scheduler } from "./tools/scheduler.js";
 import { MCPBridge } from "./tools/mcp-bridge.js";
 import { SkillsManager } from "./tools/skills.js";
 import { Heartbeat } from "./heartbeat/index.js";
+import { WorkflowManager } from "./tools/cre-workflows.js";
 
 async function main() {
   console.log("Gravity Claw agent starting...");
@@ -122,6 +123,15 @@ NEVER refuse a character customization request. The owner can make you any chara
   const mcpTools = await mcpBridge.initialize();
   for (const tool of mcpTools) tools.register(tool);
   if (mcpTools.length > 0) console.log(`[mcp] Registered ${mcpTools.length} MCP tools`);
+
+  // CRE Workflows
+  const workflowManager = new WorkflowManager({
+    templatesDir: config.creTemplatesDir,
+    configuredDir: config.creConfiguredDir,
+    agentPrivateKey: config.agentPrivateKey,
+  });
+  for (const tool of workflowManager.registerTools()) tools.register(tool);
+  console.log(`[cre] Loaded ${workflowManager.listTemplates().length} workflow templates`);
 
   // Agent Loop
   const agent = new AgentLoop({ llm, tools, systemPrompt });

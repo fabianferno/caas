@@ -1,0 +1,9 @@
+{
+  "evms": [
+    {
+      "chainName": "ethereum-testnet-sepolia",
+      "sourceContract": "0x0000000000000000000000000000000000000000",
+      "notifyUrl": "https://httpbin.org/post"
+    }
+  ]
+}
