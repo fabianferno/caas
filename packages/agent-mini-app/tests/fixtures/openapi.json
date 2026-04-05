@@ -1,0 +1,20 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Test API", "version": "1.0.0" },
+  "paths": {
+    "/api/search": {
+      "get": {
+        "operationId": "searchItems",
+        "summary": "Search for items",
+        "description": "Find items matching a query"
+      }
+    },
+    "/api/book": {
+      "post": {
+        "operationId": "bookItem",
+        "summary": "Book an item",
+        "description": "Reserve an item by ID"
+      }
+    }
+  }
+}
