@@ -60,9 +60,9 @@ describe("SkillManagerTool", () => {
       expect(fs.existsSync(filePath)).toBe(true);
       const content = fs.readFileSync(filePath, "utf-8");
       expect(content).toContain("name: my-skill");
-      expect(content).toContain("description: Does something");
-      expect(content).toContain("  - do it");
-      expect(content).toContain("  - run it");
+      expect(content).toContain('description: "Does something"');
+      expect(content).toContain('  - "do it"');
+      expect(content).toContain('  - "run it"');
       expect(content).toContain("# My Skill");
     });
 
@@ -71,7 +71,7 @@ describe("SkillManagerTool", () => {
       await getHandler("skill_add")({ name: "dup", description: "v1", triggers: ["a"], content: "v1" });
       await getHandler("skill_add")({ name: "dup", description: "v2", triggers: ["b"], content: "v2" });
       const content = fs.readFileSync(path.join(skillsDir, "dup.md"), "utf-8");
-      expect(content).toContain("description: v2");
+      expect(content).toContain('description: "v2"');
     });
   });
 
@@ -115,6 +115,29 @@ describe("SkillManagerTool", () => {
       const result = await getHandler("skill_list")({});
       const parsed = JSON.parse(result as string);
       expect(parsed).toEqual([]);
+    });
+  });
+
+  describe("security", () => {
+    it("skill_remove rejects path traversal name", async () => {
+      registry.setContext({ userId: OWNER_ID });
+      const result = await getHandler("skill_remove")({ name: "../../../etc/passwd" });
+      expect(result).toContain("Error:");
+    });
+
+    it("skill_add handles description with special YAML chars", async () => {
+      registry.setContext({ userId: OWNER_ID });
+      await getHandler("skill_add")({
+        name: "tricky",
+        description: 'Say "hello" and: done',
+        triggers: ['trigger: weird'],
+        content: "content",
+      });
+      const filePath = path.join(skillsDir, "tricky.md");
+      expect(fs.existsSync(filePath)).toBe(true);
+      // File should be readable (not corrupted frontmatter)
+      const raw = fs.readFileSync(filePath, "utf-8");
+      expect(raw).toContain('description: "Say \\"hello\\" and: done"');
     });
   });
 });

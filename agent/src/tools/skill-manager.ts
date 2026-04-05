@@ -58,8 +58,12 @@ export class SkillManagerTool {
           if (!/^[a-zA-Z0-9-]+$/.test(name)) {
             return "Error: Skill name must be alphanumeric with hyphens only.";
           }
-          const triggerLines = triggers.map((t) => `  - ${t}`).join("\n");
-          const md = `---\nname: ${name}\ndescription: ${description}\ntriggers:\n${triggerLines}\n---\n${content}`;
+          const escapedDesc = description.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+          const triggerLines = triggers.map((t) => {
+            const escaped = t.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+            return `  - "${escaped}"`;
+          }).join("\n");
+          const md = `---\nname: ${name}\ndescription: "${escapedDesc}"\ntriggers:\n${triggerLines}\n---\n${content}`;
           fs.writeFileSync(path.join(this.skillsDir, `${name}.md`), md, "utf-8");
           return `Skill "${name}" added successfully.`;
         },
@@ -76,6 +80,9 @@ export class SkillManagerTool {
         },
         handler: async (args: any): Promise<string> => {
           if (!this.isOwner()) return "Error: Only the agent owner can manage skills.";
+          if (!/^[a-zA-Z0-9-]+$/.test(args.name)) {
+            return "Error: Skill name must be alphanumeric with hyphens only.";
+          }
           const filePath = path.join(this.skillsDir, `${args.name}.md`);
           if (!fs.existsSync(filePath)) return `Error: Skill "${args.name}" not found.`;
           fs.unlinkSync(filePath);
