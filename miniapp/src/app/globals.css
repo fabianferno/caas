@@ -4,13 +4,14 @@
 
 /* ============================================================
    NEUMORPHISM DESIGN SYSTEM
-   BG: #e0e5ec  Shadow dark: #a3b1c6  Shadow light: #ffffff
-   Accent: Blue #4361ee / Cyan #00c2cb
+   BG: #e0e5ec  Shadow dark: #b3b7bd (lum -0.20)  Shadow light: #ffffff (lum +0.20)
+   Formula: colorLuminance(hex, lum) from github.com/adamgiebl/neumorphism
+   Accent: Blue #7b96f5
    ============================================================ */
 :root {
   /* ── Neumorphism palette ── */
   --nm-bg: #e0e5ec;
-  --nm-dark: #a3b1c6;
+  --nm-dark: #b3b7bd;
   --nm-light: #ffffff;
 
   /* ── Brand Accent — Pastel Blue ── */
@@ -43,8 +44,8 @@
   --muted: #d0d8e8;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: rgba(163, 177, 198, 0.4);
-  --border-strong: rgba(163, 177, 198, 0.7);
+  --border: rgba(190, 195, 201, 0.4);
+  --border-strong: rgba(190, 195, 201, 0.7);
   --input: #e0e5ec;
   --ring: #4361ee;
   --radius: 1rem;
@@ -88,7 +89,7 @@
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #d5dce8;
   --sidebar-accent-foreground: #31456a;
-  --sidebar-border: rgba(163, 177, 198, 0.4);
+  --sidebar-border: rgba(190, 195, 201, 0.4);
   --sidebar-ring: #4361ee;
 }
 
@@ -238,8 +239,8 @@ html {
 }
 
 @keyframes nm-breathe {
-  0%, 100% { box-shadow: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff; }
-  50% { box-shadow: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff; }
+  0%, 100% { box-shadow: 6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5); }
+  50% { box-shadow: 8px 8px 20px #b3b7bd, -8px -8px 20px rgba(255,255,255,0.5); }
 }
 
 /* ============================================================
@@ -249,41 +250,41 @@ html {
   /* ── Raised (default element depth) ── */
   .nm-raised {
     background: #e0e5ec;
-    box-shadow: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff;
+    box-shadow: 6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5);
   }
   .nm-raised-sm {
     background: #e0e5ec;
-    box-shadow: 3px 3px 7px #a3b1c6, -3px -3px 7px #ffffff;
+    box-shadow: 3px 3px 10px #b3b7bd, -3px -3px 10px rgba(255,255,255,0.5);
   }
   .nm-raised-lg {
     background: #e0e5ec;
-    box-shadow: 10px 10px 20px #a3b1c6, -10px -10px 20px #ffffff;
+    box-shadow: 10px 10px 24px #b3b7bd, -10px -10px 24px rgba(255,255,255,0.5);
   }
 
   /* ── Inset (input / pressed) ── */
   .nm-inset {
     background: #e0e5ec;
-    box-shadow: inset 4px 4px 8px #a3b1c6, inset -4px -4px 8px #ffffff;
+    box-shadow: inset 5px 5px 14px #b3b7bd, inset -5px -5px 14px rgba(255,255,255,0.7);
   }
   .nm-inset-sm {
     background: #e0e5ec;
-    box-shadow: inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff;
+    box-shadow: inset 3px 3px 8px #b3b7bd, inset -3px -3px 8px rgba(255,255,255,0.7);
   }
 
   /* ── Active/pressed state ── */
   .nm-active {
     background: #e0e5ec;
-    box-shadow: inset 3px 3px 7px #a3b1c6, inset -1px -1px 4px #ffffff;
+    box-shadow: inset 3px 3px 7px #b3b7bd, inset -1px -1px 4px rgba(255,255,255,0.7);
   }
 
   /* ── Accent button (solid pastel blue) ── */
   .nm-btn-accent {
     background: #7b96f5;
-    box-shadow: 4px 4px 10px rgba(123, 150, 245, 0.45), -2px -2px 6px rgba(255, 255, 255, 0.7);
+    box-shadow: 6px 6px 16px rgba(80, 100, 190, 0.55), -4px -4px 12px rgba(255, 255, 255, 0.95);
     color: #ffffff;
   }
   .nm-btn-accent:active {
-    box-shadow: 2px 2px 6px rgba(123, 150, 245, 0.5), -1px -1px 4px rgba(255, 255, 255, 0.5);
+    box-shadow: 2px 2px 8px rgba(80, 100, 190, 0.55), -1px -1px 6px rgba(255, 255, 255, 0.7);
   }
 
   /* ── Utility helpers ── */
@@ -317,6 +318,6 @@ html {
   }
   .pressable:active {
     transform: scale(0.97);
-    box-shadow: 2px 2px 5px #a3b1c6, -2px -2px 5px #ffffff;
+    box-shadow: 2px 2px 5px #b3b7bd, -2px -2px 5px rgba(255,255,255,0.5);
   }
 }

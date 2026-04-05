@@ -81,7 +81,7 @@ export default function HowItWorks() {
               className="rounded-2xl p-4 relative overflow-hidden flex flex-col justify-between"
               style={{
                 background: "#e0e5ec",
-                boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+                boxShadow: "6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)",
                 minHeight: 152,
               }}
             >
@@ -103,7 +103,7 @@ export default function HowItWorks() {
                 style={{
                   color: step.iconColor,
                   background: "#e0e5ec",
-                  boxShadow: "inset 2px 2px 4px #a3b1c6, inset -2px -2px 4px #ffffff",
+                  boxShadow: "inset 2px 2px 4px #b3b7bd, inset -2px -2px 4px rgba(255,255,255,0.85)",
                 }}
               >
                 {step.tag}
@@ -113,7 +113,7 @@ export default function HowItWorks() {
               <div className="relative z-10 mt-3">
                 <div
                   className="w-8 h-8 rounded-xl flex items-center justify-center mb-2"
-                  style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+                  style={{ boxShadow: "inset 2px 2px 5px #b3b7bd, inset -2px -2px 5px rgba(255,255,255,0.85)" }}
                 >
                   <step.icon size={15} style={{ color: step.iconColor }} />
                 </div>

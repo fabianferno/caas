@@ -43,7 +43,7 @@ export default function Hero() {
             className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden"
             style={{
               background: "#7b96f5",
-              boxShadow: "4px 4px 8px #a3b1c6, -2px -2px 6px #ffffff",
+              boxShadow: "4px 4px 10px #b3b7bd, -2px -2px 8px rgba(255,255,255,0.5)",
             }}
           >
             <svg viewBox="0 0 1024 1024" className="w-[22px] h-[22px]" fill="white">
@@ -59,7 +59,7 @@ export default function Hero() {
           style={{
             color: "#8a9bb0",
             background: "#e0e5ec",
-            boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff",
+            boxShadow: "inset 2px 2px 5px #b3b7bd, inset -2px -2px 5px rgba(255,255,255,0.85)",
           }}
         >
           Beta
@@ -96,13 +96,13 @@ export default function Hero() {
             className="rounded-2xl p-3.5 flex flex-col justify-between"
             style={{
               background: "#e0e5ec",
-              boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+              boxShadow: "6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)",
               minHeight: 104,
             }}
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+              style={{ boxShadow: "inset 2px 2px 5px #b3b7bd, inset -2px -2px 5px rgba(255,255,255,0.85)" }}
             >
               <Globe size={15} style={{ color: "#7b96f5" }} />
             </div>
@@ -116,13 +116,13 @@ export default function Hero() {
             className="rounded-2xl p-3.5 flex flex-col justify-between"
             style={{
               background: "#e0e5ec",
-              boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+              boxShadow: "6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)",
               minHeight: 104,
             }}
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+              style={{ boxShadow: "inset 2px 2px 5px #b3b7bd, inset -2px -2px 5px rgba(255,255,255,0.85)" }}
             >
               <Zap size={15} style={{ color: "#6dd5d9" }} />
             </div>
@@ -136,13 +136,13 @@ export default function Hero() {
             className="rounded-2xl p-3.5 flex flex-col justify-between"
             style={{
               background: "#e0e5ec",
-              boxShadow: "6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff",
+              boxShadow: "6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)",
               minHeight: 104,
             }}
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ boxShadow: "inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff" }}
+              style={{ boxShadow: "inset 2px 2px 5px #b3b7bd, inset -2px -2px 5px rgba(255,255,255,0.85)" }}
             >
               <ShieldCheck size={15} style={{ color: "#7b96f5" }} />
             </div>

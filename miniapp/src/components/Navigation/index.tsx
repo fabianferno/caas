@@ -24,7 +24,7 @@ export const Navigation = () => {
       className="flex items-center justify-around px-4 pt-3 pb-4"
       style={{
         background: '#e0e5ec',
-        boxShadow: '-4px -4px 10px #ffffff, 4px 0px 10px #a3b1c6',
+        boxShadow: '-4px -4px 10px rgba(255,255,255,0.5), 4px 0px 10px #b3b7bd',
       }}
     >
       {tabs.map(({ value, icon: Icon, label }) => {
@@ -38,7 +38,7 @@ export const Navigation = () => {
               active
                 ? {
                     background: '#e0e5ec',
-                    boxShadow: 'inset 3px 3px 7px #a3b1c6, inset -3px -3px 7px #ffffff',
+                    boxShadow: 'inset 3px 3px 7px #b3b7bd, inset -3px -3px 7px rgba(255,255,255,0.85)',
                   }
                 : {
                     background: 'transparent',

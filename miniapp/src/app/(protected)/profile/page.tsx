@@ -1,6 +1,7 @@
 'use client';
 
 import { Page } from '@/components/PageLayout';
+import { CaasLogo } from '@/components/CaasLogo';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -62,19 +63,22 @@ export default function Profile() {
 
   return (
     <>
-      <Page.Header className="px-5 pt-6 pb-4" style={{ background: '#e0e5ec' } as React.CSSProperties}>
-        <div className="flex items-center justify-between">
-          <h1 className="font-coolvetica text-2xl tracking-tight" style={{ color: '#31456a' }}>
-            Profile
-          </h1>
+      <Page.Header className="px-5 pt-6 pb-5" style={{ background: '#e0e5ec' } as React.CSSProperties}>
+        <div className="flex items-center justify-between mb-3">
+          <CaasLogo />
           <motion.button
             whileTap={{ scale: 0.95 }}
             className="w-10 h-10 rounded-2xl flex items-center justify-center"
-            style={{ background: '#e0e5ec', boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff' }}
+            style={{ background: '#e0e5ec', boxShadow: '4px 4px 12px #b3b7bd, -4px -4px 12px rgba(255,255,255,0.5)' }}
           >
             <Settings size={18} style={{ color: '#8a9bb0' }} />
           </motion.button>
         </div>
+        <h1
+          className="font-coolvetica text-[2rem] uppercase leading-none tracking-tight"
+        >
+          Profile
+        </h1>
       </Page.Header>
 
       <Page.Main className="pb-24 px-5 pt-5 space-y-6" style={{ background: '#e0e5ec' } as React.CSSProperties}>
@@ -84,14 +88,14 @@ export default function Profile() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl p-5"
-          style={{ background: '#e0e5ec', boxShadow: '6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff' }}
+          style={{ background: '#e0e5ec', boxShadow: '6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)' }}
         >
           <div className="flex items-center gap-4">
             <div
               className="w-16 h-16 rounded-full flex items-center justify-center"
               style={{
                 background: '#7b96f5',
-                boxShadow: '4px 4px 8px #a3b1c6, -2px -2px 6px #ffffff',
+                boxShadow: '4px 4px 10px #b3b7bd, -2px -2px 8px rgba(255,255,255,0.5)',
               }}
             >
               <span className="text-white font-bold text-lg">You</span>
@@ -106,7 +110,7 @@ export default function Profile() {
                   0x1234...5678
                 </p>
               </div>
-              <p className="text-[10px] mt-1" style={{ color: '#a3b1c6' }}>
+              <p className="text-[10px] mt-1" style={{ color: '#b3b7bd' }}>
                 Verified human · Agent operator
               </p>
             </div>
@@ -125,13 +129,13 @@ export default function Profile() {
             className="rounded-2xl p-5"
             style={{
               background: '#e0e5ec',
-              boxShadow: 'inset 4px 4px 8px #a3b1c6, inset -4px -4px 8px #ffffff',
+              boxShadow: 'inset 4px 4px 8px #b3b7bd, inset -4px -4px 8px rgba(255,255,255,0.85)',
             }}
           >
             <div className="flex flex-col items-center text-center py-4">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
-                style={{ background: '#e0e5ec', boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff' }}
+                style={{ background: '#e0e5ec', boxShadow: '4px 4px 12px #b3b7bd, -4px -4px 12px rgba(255,255,255,0.5)' }}
               >
                 <Plus size={24} style={{ color: '#8a9bb0' }} />
               </div>
@@ -142,13 +146,13 @@ export default function Profile() {
                 Create an AI agent that operates across WhatsApp, Telegram,
                 and the web. Fund it with WLD.
               </p>
-              <p className="text-[10px] max-w-xs mb-4" style={{ color: '#a3b1c6' }}>
+              <p className="text-[10px] max-w-xs mb-4" style={{ color: '#b3b7bd' }}>
                 All agents are linked to your World ID for accountability.
               </p>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.push('/create')}
-                className="text-white text-sm font-medium px-6 py-2.5 rounded-full flex items-center gap-2 nm-btn-accent"
+                className="text-white text-sm font-medium px-6 py-3.5 rounded-full flex items-center gap-2 nm-btn-accent"
               >
                 <Plus size={16} />
                 Create Claw
@@ -175,7 +179,7 @@ export default function Profile() {
               <div
                 key={stat.label}
                 className="rounded-xl p-3 text-center"
-                style={{ background: '#e0e5ec', boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff' }}
+                style={{ background: '#e0e5ec', boxShadow: '4px 4px 12px #b3b7bd, -4px -4px 12px rgba(255,255,255,0.5)' }}
               >
                 <p className="text-lg font-bold" style={{ color: '#31456a' }}>
                   {stat.value}
@@ -203,11 +207,11 @@ export default function Profile() {
                   if (link.label === 'Report a Claw') setShowReportSheet(true);
                 }}
                 className="w-full rounded-xl p-4 flex items-center gap-3 text-left"
-                style={{ background: '#e0e5ec', boxShadow: '4px 4px 8px #a3b1c6, -4px -4px 8px #ffffff' }}
+                style={{ background: '#e0e5ec', boxShadow: '4px 4px 12px #b3b7bd, -4px -4px 12px rgba(255,255,255,0.5)' }}
               >
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-                  style={{ boxShadow: 'inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff' }}
+                  style={{ boxShadow: 'inset 2px 2px 5px #b3b7bd, inset -2px -2px 5px rgba(255,255,255,0.85)' }}
                 >
                   <link.icon size={16} style={{ color: link.iconColor }} />
                 </div>
@@ -217,7 +221,7 @@ export default function Profile() {
                   </h3>
                   <p className="text-xs" style={{ color: '#8a9bb0' }}>{link.description}</p>
                 </div>
-                <ChevronRight size={16} style={{ color: '#a3b1c6' }} />
+                <ChevronRight size={16} style={{ color: '#b3b7bd' }} />
               </motion.button>
             ))}
           </div>
@@ -239,11 +243,11 @@ export default function Profile() {
             transition={{ type: 'spring', damping: 25 }}
             onClick={(e) => e.stopPropagation()}
             className="rounded-t-3xl w-full max-w-lg p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
-            style={{ background: '#e0e5ec', boxShadow: '-8px -8px 20px #ffffff, 4px 0 12px #a3b1c6' }}
+            style={{ background: '#e0e5ec', boxShadow: '-8px -8px 20px rgba(255,255,255,0.5), 4px 0 12px #b3b7bd' }}
           >
             <div
               className="w-10 h-1 rounded-full mx-auto mb-5"
-              style={{ background: '#a3b1c6' }}
+              style={{ background: '#b3b7bd' }}
             />
             <h3 className="font-coolvetica text-xl mb-2" style={{ color: '#31456a' }}>
               Report a Claw
@@ -257,7 +261,7 @@ export default function Profile() {
               className="w-full px-4 py-3 text-sm outline-none rounded-xl mb-3"
               style={{
                 background: '#e0e5ec',
-                boxShadow: 'inset 4px 4px 8px #a3b1c6, inset -4px -4px 8px #ffffff',
+                boxShadow: 'inset 4px 4px 8px #b3b7bd, inset -4px -4px 8px rgba(255,255,255,0.85)',
                 color: '#31456a',
               }}
             />
@@ -275,7 +279,7 @@ export default function Profile() {
                   className="w-full text-left px-4 py-3 text-sm rounded-xl transition-all"
                   style={{
                     background: '#e0e5ec',
-                    boxShadow: '3px 3px 6px #a3b1c6, -3px -3px 6px #ffffff',
+                    boxShadow: '3px 3px 8px #b3b7bd, -3px -3px 8px rgba(255,255,255,0.5)',
                     color: '#31456a',
                   }}
                 >
