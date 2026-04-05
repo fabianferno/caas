@@ -1,5 +1,7 @@
-import baileys from "@whiskeysockets/baileys";
-const { makeWASocket, useMultiFileAuthState, DisconnectReason } = baileys;
+import makeWASocketDefault, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
+
+// Handle both ESM default export styles
+const makeWASocket = (makeWASocketDefault as any).default ?? makeWASocketDefault;
 type WASocket = ReturnType<typeof makeWASocket>;
 import type { Channel, MessageHandler, IncomingMessage } from "./types.js";
 import type { AgentResponse } from "../core/types.js";
@@ -35,7 +37,7 @@ export class WhatsAppChannel implements Channel {
 
     this.socket.ev.on("creds.update", saveCreds);
 
-    this.socket.ev.on("connection.update", (update) => {
+    this.socket.ev.on("connection.update", (update: any) => {
       const { connection, lastDisconnect } = update;
       if (connection === "close") {
         const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
@@ -62,7 +64,7 @@ export class WhatsAppChannel implements Channel {
       }
     });
 
-    this.socket.ev.on("messages.upsert", ({ messages }) => {
+    this.socket.ev.on("messages.upsert", ({ messages }: any) => {
       for (const msg of messages) {
         if (!msg.message || msg.key.fromMe) continue;
         const userId = msg.key.remoteJid || "";
