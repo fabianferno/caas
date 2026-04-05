@@ -411,31 +411,76 @@ function HowItWorksSlide() {
 }
 
 function TechSlide() {
+  const TECH_COLORS = {
+    worldid: ACCENT,
+    ens: ACCENT_2,
+    zerog: "#a78bfa",
+    x402: "#34d399",
+  };
+
   const techs = [
     {
+      id: "worldid",
       title: "World ID",
       desc: "Sybil-resistant human verification for every agent creator",
       tags: ["Proof of Personhood", "Wallet Auth"],
-      primary: false,
+      color: TECH_COLORS.worldid,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M6 20v-2a6 6 0 0 1 12 0v2" />
+        </svg>
+      ),
     },
     {
+      id: "ens",
       title: "ENS Identity",
       desc: "On-chain agent names with ENSIP-5 text records for personality and config",
       tags: ["Subnames", "Soul Records"],
-      primary: true,
+      color: TECH_COLORS.ens,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      ),
     },
     {
+      id: "zerog",
       title: "0G Network",
       desc: "Decentralized compute for LLM inference and immutable agent memory storage",
       tags: ["Storage", "Compute", "ERC-7857"],
-      primary: false,
+      color: TECH_COLORS.zerog,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3" />
+          <path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5" />
+          <path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3" />
+        </svg>
+      ),
     },
     {
+      id: "x402",
       title: "x402 Protocol",
       desc: "Autonomous micropayments so agents can pay for APIs without human intervention",
       tags: ["Linux Foundation", "AgentKit"],
-      primary: false,
+      color: TECH_COLORS.x402,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      ),
     },
+  ];
+
+  // Hub-and-spoke diagram: 4 tech nodes connected to CaaS center
+  const ccx = 240, ccy = 110;
+  const archNodes = [
+    { id: "worldid", label: "World ID",  sublabel: "Identity",  x: 30,  y: 30,  color: TECH_COLORS.worldid },
+    { id: "ens",     label: "ENS",       sublabel: "Naming",    x: 355, y: 30,  color: TECH_COLORS.ens     },
+    { id: "zerog",   label: "0G Net",    sublabel: "Compute",   x: 30,  y: 155, color: TECH_COLORS.zerog   },
+    { id: "x402",    label: "x402",      sublabel: "Payments",  x: 355, y: 155, color: TECH_COLORS.x402    },
   ];
 
   return (
@@ -443,7 +488,7 @@ function TechSlide() {
       <motion.p
         custom={0}
         variants={fadeUp}
-        className="text-sm font-mono tracking-widest uppercase mb-4"
+        className="text-sm font-mono tracking-widest uppercase mb-2"
         style={{ color: ACCENT }}
       >
         04 -- Tech Stack
@@ -452,53 +497,142 @@ function TechSlide() {
       <motion.h2
         custom={1}
         variants={fadeUp}
-        className="text-4xl md:text-5xl font-heading mb-10"
+        className="text-3xl md:text-4xl font-heading mb-4"
         style={{ color: FG }}
       >
         Built on <span style={{ color: ACCENT_2 }}>composable</span> primitives
       </motion.h2>
 
-      <motion.div
-        variants={staggerContainer}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
-        {techs.map((t, i) => (
-          <motion.div
-            key={t.title}
-            custom={i + 2}
-            variants={scaleIn}
-            className="rounded-2xl p-6"
-            style={{
-              background: BG,
-              boxShadow: t.primary
-                ? `6px 6px 16px ${DARK_SHADOW}, -6px -6px 16px ${LIGHT_SHADOW}, inset 0 0 0 2px ${ACCENT}40`
-                : nmRaised,
-            }}
-          >
-            <p className="font-medium text-lg mb-1" style={{ color: FG }}>{t.title}</p>
-            <p className="text-sm mb-3" style={{ color: MUTED }}>
-              {t.desc}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {t.tags.map((tag) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+        {/* Architecture diagram */}
+        <motion.div
+          custom={2}
+          variants={scaleIn}
+          className="rounded-2xl p-3"
+          style={{ background: BG, boxShadow: nmInset }}
+        >
+          <p className="text-xs font-mono text-center tracking-widest uppercase mb-1" style={{ color: MUTED }}>
+            System Architecture
+          </p>
+          <svg viewBox="0 0 480 230" width="100%">
+            {/* Connection lines */}
+            {archNodes.map((n) => (
+              <line
+                key={`line-${n.id}`}
+                x1={n.x + 48} y1={n.y + 28}
+                x2={ccx} y2={ccy}
+                stroke={n.color}
+                strokeWidth="1.5"
+                strokeDasharray="5 4"
+                opacity="0.3"
+              />
+            ))}
+
+            {/* Animated dots traveling inward */}
+            {archNodes.map((n, i) => (
+              <circle key={`dot-in-${n.id}`} r="3.5" fill={n.color} opacity="0.85">
+                <animateMotion
+                  dur={`${1.8 + i * 0.45}s`}
+                  repeatCount="indefinite"
+                  begin={`${i * 0.5}s`}
+                  path={`M ${n.x + 48},${n.y + 28} L ${ccx},${ccy}`}
+                />
+              </circle>
+            ))}
+
+            {/* Animated dots traveling outward */}
+            {archNodes.map((n, i) => (
+              <circle key={`dot-out-${n.id}`} r="2" fill={n.color} opacity="0.45">
+                <animateMotion
+                  dur={`${2.4 + i * 0.35}s`}
+                  repeatCount="indefinite"
+                  begin={`${0.9 + i * 0.3}s`}
+                  path={`M ${ccx},${ccy} L ${n.x + 48},${n.y + 28}`}
+                />
+              </circle>
+            ))}
+
+            {/* CaaS center node */}
+            <rect
+              x={ccx - 52} y={ccy - 30}
+              width="104" height="60"
+              rx="14"
+              fill={BG}
+              style={{ filter: `drop-shadow(4px 4px 10px ${DARK_SHADOW}) drop-shadow(-4px -4px 10px ${LIGHT_SHADOW})` }}
+            />
+            <rect
+              x={ccx - 52} y={ccy - 30}
+              width="104" height="60"
+              rx="14"
+              fill="none"
+              stroke={ACCENT}
+              strokeWidth="1.5"
+              opacity="0.35"
+            />
+            <text x={ccx} y={ccy - 4} textAnchor="middle" fill={ACCENT} fontSize="17" fontWeight="bold" fontFamily="system-ui, sans-serif">CaaS</text>
+            <text x={ccx} y={ccy + 14} textAnchor="middle" fill={MUTED} fontSize="10" fontFamily="system-ui, sans-serif">Platform</text>
+
+            {/* Tech nodes */}
+            {archNodes.map((n) => (
+              <g key={n.id} transform={`translate(${n.x}, ${n.y})`}>
+                <rect
+                  x="0" y="0" width="96" height="56"
+                  rx="12"
+                  fill={BG}
+                  style={{ filter: `drop-shadow(3px 3px 8px ${DARK_SHADOW}) drop-shadow(-3px -3px 8px ${LIGHT_SHADOW})` }}
+                />
+                <rect x="0" y="6" width="3" height="44" rx="1.5" fill={n.color} opacity="0.75" />
+                <text x="52" y="27" textAnchor="middle" fill={FG} fontSize="13" fontWeight="600" fontFamily="system-ui, sans-serif">{n.label}</text>
+                <text x="52" y="43" textAnchor="middle" fill={MUTED} fontSize="10" fontFamily="system-ui, sans-serif">{n.sublabel}</text>
+              </g>
+            ))}
+          </svg>
+        </motion.div>
+
+        {/* Tech cards */}
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-2 gap-3"
+        >
+          {techs.map((t, i) => (
+            <motion.div
+              key={t.title}
+              custom={i + 3}
+              variants={scaleIn}
+              className="rounded-2xl p-4"
+              style={{
+                background: BG,
+                boxShadow: nmRaised,
+                borderLeft: `3px solid ${t.color}`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-2">
                 <span
-                  key={tag}
-                  className="px-2 py-0.5 rounded-full text-xs font-mono"
-                  style={{
-                    background: BG,
-                    boxShadow: nmInset,
-                    color: MUTED,
-                  }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: BG, boxShadow: nmRaisedSm, color: t.color }}
                 >
-                  {tag}
+                  {t.icon}
                 </span>
-              ))}
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+                <p className="font-medium text-sm leading-tight" style={{ color: FG }}>{t.title}</p>
+              </div>
+              <p className="text-xs leading-relaxed mb-2" style={{ color: MUTED }}>{t.desc}</p>
+              <div className="flex flex-wrap gap-1">
+                {t.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-0.5 rounded-full font-mono"
+                    style={{ background: BG, boxShadow: nmInset, color: t.color, fontSize: "9px" }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
     </div>
   );
 }
