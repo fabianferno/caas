@@ -19,9 +19,13 @@ export class TelegramChannel implements Channel {
     this.bot = new Bot(opts.token);
     this.allowedUserIds = new Set(opts.allowedUserIds);
 
-    this.bot.on("message:text", (ctx) => {
+    this.bot.on("message:text", async (ctx) => {
       const userId = String(ctx.from?.id);
+      const text = ctx.message.text;
+      console.log(`[telegram] Message from ${userId}: ${text.slice(0, 80)}`);
+
       if (this.allowedUserIds.size > 0 && !this.allowedUserIds.has(userId)) {
+        console.log(`[telegram] Ignored (user ${userId} not in allowlist)`);
         return;
       }
 
@@ -33,9 +37,9 @@ export class TelegramChannel implements Channel {
           channelName: "telegram",
           conversationId: chatId,
           userId,
-          text: ctx.message.text,
+          text,
         };
-        this.handler(msg);
+        await this.handler(msg);
       }
     });
   }
