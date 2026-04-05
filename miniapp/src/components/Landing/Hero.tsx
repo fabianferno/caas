@@ -106,7 +106,7 @@ export default function Hero() {
       <div className="shrink-0 px-5 pb-8">
 
         {/* 3 stat cards */}
-        <div className="h-cards grid grid-cols-3 gap-3 mb-4">
+        {/* <div className="h-cards grid grid-cols-3 gap-3 mb-4">
 
           <div
             className="rounded-2xl p-3.5 flex flex-col justify-between"
@@ -123,8 +123,8 @@ export default function Hero() {
               <Globe size={15} style={{ color: "#7b96f5" }} />
             </div>
             <div>
-              <p className="font-coolvetica text-[1.55rem] leading-none" style={{ color: "#31456a" }}>38M+</p>
-              <p className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#8a9bb0" }}>Users</p>
+            <p className="font-coolvetica text-[1.15rem] leading-tight" style={{ color: "#31456a" }}>One Click</p>
+              <p className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#8a9bb0" }}>Deploy</p>
             </div>
           </div>
 
@@ -168,7 +168,7 @@ export default function Hero() {
             </div>
           </div>
 
-        </div>
+        </div> */}
 
         {/* CTA */}
         <Link
