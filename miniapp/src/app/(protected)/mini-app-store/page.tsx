@@ -4,7 +4,7 @@ import { Page } from '@/components/PageLayout';
 import { CaasLogo } from '@/components/CaasLogo';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Zap, Check } from 'lucide-react';
+import { ArrowLeft, Zap, Check, Key, Copy, SquareCode } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 /* ── Shadows (match existing pages) ── */
@@ -50,6 +50,9 @@ export default function MiniAppStore() {
   const [loading, setLoading] = useState(true);
   const [enabled, setEnabled] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<AgentMiniApp | null>(null);
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [devOpen, setDevOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/agent-apps')
@@ -57,6 +60,19 @@ export default function MiniAppStore() {
       .then((data: AgentMiniApp[]) => { setApps(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const generateKey = () => {
+    const key = crypto.randomUUID();
+    setApiKey(key);
+    setCopied(false);
+  };
+
+  const copyKey = () => {
+    if (!apiKey) return;
+    navigator.clipboard.writeText(apiKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const toggleEnable = (id: string) => {
     setEnabled(prev => {
@@ -80,12 +96,77 @@ export default function MiniAppStore() {
               Mini App Store
             </p>
           </div>
-          <motion.button whileTap={{ scale: 0.95 }} onClick={() => router.back()}
-            className="w-10 h-10 rounded-2xl flex items-center justify-center" style={nmRaisedSm}>
-            <ArrowLeft size={18} style={{ color: '#8a9bb0' }} />
-          </motion.button>
+          <div className="flex items-center gap-2">
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => setDevOpen(v => !v)}
+              className="h-10 px-3 rounded-2xl flex items-center gap-1.5"
+              style={devOpen ? { ...nmRaisedSm, background: '#31456a' } : nmRaisedSm}>
+              <SquareCode size={13} style={{ color: devOpen ? '#7b96f5' : '#8a9bb0' }} />
+              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: devOpen ? '#7b96f5' : '#8a9bb0' }}>Dev</span>
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => router.back()}
+              className="w-10 h-10 rounded-2xl flex items-center justify-center" style={nmRaisedSm}>
+              <ArrowLeft size={18} style={{ color: '#8a9bb0' }} />
+            </motion.button>
+          </div>
         </div>
       </Page.Header>
+
+      {/* Dev panel — slides down from header */}
+      <AnimatePresence>
+        {devOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 340 }}
+            className="overflow-hidden px-5"
+            style={{ background: '#d8dde5' }}
+          >
+            <div className="py-4 flex flex-col gap-3">
+              <p className="text-[11px] leading-relaxed" style={{ color: '#5a6e8a' }}>
+                Add your mini app to the store using{' '}
+                <span className="font-mono font-bold" style={{ color: '#7b96f5' }}>@world-caas/agent-mini-app</span>.
+                Generate a key, set it as <span className="font-mono text-[10px]">CAAS_API_KEY</span>, then run{' '}
+                <span className="font-mono text-[10px]" style={{ color: '#31456a' }}>npx @world-caas/agent-mini-app register</span>.
+              </p>
+
+              {!apiKey ? (
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={generateKey}
+                  className="w-full h-10 rounded-xl flex items-center justify-center gap-2 text-[12px] font-bold"
+                  style={nmBtn}
+                >
+                  <Key size={13} /> Generate API Key
+                </motion.button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <div className="rounded-xl px-3 py-2.5 flex items-center justify-between gap-2" style={nmInsetSm}>
+                    <p className="font-mono text-[10px] truncate" style={{ color: '#31456a' }}>{apiKey}</p>
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={copyKey} className="shrink-0">
+                      {copied
+                        ? <Check size={13} style={{ color: '#10b981' }} />
+                        : <Copy size={13} style={{ color: '#8a9bb0' }} />
+                      }
+                    </motion.button>
+                  </div>
+                  <p className="text-[10px]" style={{ color: '#b3b7bd' }}>
+                    Save this — it will not be shown again.
+                  </p>
+                  <motion.button
+                    whileTap={{ scale: 0.96 }}
+                    onClick={generateKey}
+                    className="w-full h-9 rounded-xl text-[11px] font-bold"
+                    style={nmInsetSm}
+                  >
+                    <span style={{ color: '#8a9bb0' }}>Generate new key</span>
+                  </motion.button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Page.Main className="px-5 py-5">
         {loading && (
