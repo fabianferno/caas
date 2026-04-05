@@ -7,8 +7,27 @@
   "bin": {
     "agent-mini-app": "./dist/cli/register.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fabianferno/caas"
+  },
+  "keywords": [
+    "caas",
+    "x402",
+    "world",
+    "mini-app",
+    "agent",
+    "micropayments",
+    "worldcoin"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build && npm test",
     "test": "vitest run",
     "test:watch": "vitest"
   },
