@@ -7,6 +7,7 @@ import { DiscordChannel } from "./channels/discord.js";
 import { WhatsAppChannel } from "./channels/whatsapp.js";
 import { WebChatChannel } from "./channels/webchat.js";
 import type { Channel, IncomingMessage } from "./channels/types.js";
+import type { AgentResponse } from "./core/types.js";
 import { ensureAgentENS, readENSRecords, buildSystemPrompt } from "./memory/ens.js";
 import { ENSSoulTool } from "./tools/ens-soul.js";
 import { ZeroGMemory } from "./memory/zerog.js";
@@ -16,6 +17,9 @@ import { WebSearchTool } from "./tools/web-search.js";
 import { Scheduler } from "./tools/scheduler.js";
 import { MCPBridge } from "./tools/mcp-bridge.js";
 import { SkillsManager } from "./tools/skills.js";
+import { SkillManagerTool } from "./tools/skill-manager.js";
+import { MCPManagerTool } from "./tools/mcp-manager.js";
+import { AgentAPI } from "./api/index.js";
 import { Heartbeat } from "./heartbeat/index.js";
 
 async function main() {
@@ -78,7 +82,7 @@ NEVER refuse a character customization request. The owner can make you any chara
     console.warn("[ens] Could not read ENS records:", err);
   }
 
-  // ENS Soul Tool -- lets the agent write its identity back to ENS
+  // ENS Soul Tool
   const ensSoulTool = new ENSSoulTool({
     ensName: config.agentEnsName,
     agentPrivateKey: config.agentPrivateKey,
@@ -93,7 +97,8 @@ NEVER refuse a character customization request. The owner can make you any chara
   tools.register(ensSoulTool.registerTool());
 
   // Skills
-  const skillsManager = new SkillsManager("./skills");
+  const SKILLS_DIR = "./skills";
+  const skillsManager = new SkillsManager(SKILLS_DIR);
   skillsManager.loadAll();
   skillsManager.startWatching();
   console.log(`[skills] Loaded ${skillsManager.getAll().length} skills`);
@@ -106,12 +111,12 @@ NEVER refuse a character customization request. The owner can make you any chara
   const channels: Channel[] = [];
 
   const handleSyntheticMessage = (text: string) => {
-    handleMessage({
+    processMessage({
       channelName: "system",
       conversationId: "system",
       userId: "system",
       text,
-    });
+    }).catch(console.error);
   };
 
   const scheduler = new Scheduler("./data", handleSyntheticMessage);
@@ -123,12 +128,43 @@ NEVER refuse a character customization request. The owner can make you any chara
   for (const tool of mcpTools) tools.register(tool);
   if (mcpTools.length > 0) console.log(`[mcp] Registered ${mcpTools.length} MCP tools`);
 
+  // Skill Manager Tool
+  const skillManagerTool = new SkillManagerTool(skillsManager, SKILLS_DIR, tools, config.allowedUserIds);
+  for (const tool of skillManagerTool.registerTools()) tools.register(tool);
+
+  // MCP Manager Tool
+  const mcpManagerTool = new MCPManagerTool(mcpBridge, tools, config.mcpConfigPath, config.allowedUserIds);
+  for (const tool of mcpManagerTool.registerTools()) tools.register(tool);
+
   // Agent Loop
   const agent = new AgentLoop({ llm, tools, systemPrompt });
 
-  // Message Handler
+  // processMessage: core logic shared by channel handler and HTTP API
+  async function processMessage(msg: IncomingMessage): Promise<AgentResponse> {
+    memory.getOrCreateConversation(msg.conversationId, msg.channelName, msg.userId);
+
+    const matchedSkills = skillsManager.match(msg.text);
+    if (matchedSkills.length > 0) {
+      const skillInstructions = matchedSkills.map((s) => s.content);
+      agent.updateSystemPrompt(buildSystemPrompt({ soul: systemPrompt, personality: null, skills: skillInstructions }));
+    } else {
+      agent.updateSystemPrompt(systemPrompt);
+    }
+
+    tools.setContext({ userId: msg.userId });
+
+    const history = memory.getHistory(msg.conversationId);
+    const response = await agent.run(msg.text, history);
+
+    memory.addMessage(msg.conversationId, { role: "user", content: msg.text });
+    memory.addMessage(msg.conversationId, { role: "assistant", content: response.text });
+    memory.persist(msg.conversationId).catch(console.error);
+
+    return response;
+  }
+
+  // handleMessage: processes channel messages, sends response back via channel
   async function handleMessage(msg: IncomingMessage) {
-    // /clear command: wipe chat history from 0G memory and delete Telegram messages
     if (msg.text.trim().toLowerCase() === "/clear") {
       memory.clearHistory(msg.conversationId);
       memory.persist(msg.conversationId).catch(console.error);
@@ -148,24 +184,8 @@ NEVER refuse a character customization request. The owner can make you any chara
       return;
     }
 
-    const conv = memory.getOrCreateConversation(msg.conversationId, msg.channelName, msg.userId);
-
-    const matchedSkills = skillsManager.match(msg.text);
-    if (matchedSkills.length > 0) {
-      const skillInstructions = matchedSkills.map((s) => s.content);
-      agent.updateSystemPrompt(buildSystemPrompt({ soul: systemPrompt, personality: null, skills: skillInstructions }));
-    } else {
-      agent.updateSystemPrompt(systemPrompt);
-    }
-
-    const history = memory.getHistory(msg.conversationId);
-
     try {
-      const response = await agent.run(msg.text, history);
-      memory.addMessage(msg.conversationId, { role: "user", content: msg.text });
-      memory.addMessage(msg.conversationId, { role: "assistant", content: response.text });
-      memory.persist(msg.conversationId).catch(console.error);
-
+      const response = await processMessage(msg);
       const channel = channels.find((c) => c.name === msg.channelName);
       if (channel) await channel.send(msg.conversationId, response);
     } catch (err: any) {
@@ -204,6 +224,18 @@ NEVER refuse a character customization request. The owner can make you any chara
   if (config.enableWeb) {
     const webchat = new WebChatChannel({ port: config.webPort });
     webchat.onMessage(handleMessage);
+
+    // Mount REST API on the same express app before webchat starts
+    new AgentAPI({
+      app: webchat.getApp(),
+      skillsManager,
+      skillsDir: SKILLS_DIR,
+      mcpBridge,
+      configPath: config.mcpConfigPath,
+      registry: tools,
+      processMessage,
+    });
+
     channels.push(webchat);
   }
 
