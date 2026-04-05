@@ -17,25 +17,27 @@ export const Page = (props: { children: ReactNode; className?: string }) => {
   );
 };
 
-const Header = (props: { children: ReactNode; className?: string }) => {
+const Header = (props: { children: ReactNode; className?: string; style?: React.CSSProperties }) => {
   return (
     <header
       className={twMerge(
         'bg-background flex flex-col justify-center px-5 pt-6 pb-4 z-10',
         clsx(props.className),
       )}
+      style={props.style}
     >
       {props.children}
     </header>
   );
 };
 
-const Main = (props: { children: ReactNode; className?: string }) => {
+const Main = (props: { children: ReactNode; className?: string; style?: React.CSSProperties }) => {
   return (
     <main
       className={twMerge(
         clsx('grow overflow-y-auto px-5 py-5', props.className),
       )}
+      style={props.style}
     >
       {props.children}
     </main>

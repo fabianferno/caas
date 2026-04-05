@@ -19,7 +19,7 @@ export default function Footer() {
               className="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden"
               style={{
                 background: "#7b96f5",
-                boxShadow: "3px 3px 6px #a3b1c6, -1px -1px 4px #ffffff",
+                boxShadow: "3px 3px 8px #b3b7bd, -1px -1px 6px rgba(255,255,255,0.5)",
               }}
             >
               <svg viewBox="0 0 1024 1024" className="w-[18px] h-[18px]" fill="white">
@@ -46,10 +46,10 @@ export default function Footer() {
 
         {/* Bottom strip */}
         <div className="pt-5 flex flex-col gap-1" style={{ borderTop: '1px solid rgba(163,177,198,0.5)' }}>
-          <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: '#a3b1c6' }}>
+          <p className="text-[10px] uppercase tracking-[0.18em]" style={{ color: '#b3b7bd' }}>
             Powered by 0G · World · ENS
           </p>
-          <p className="text-[10px]" style={{ color: '#a3b1c6' }}>
+          <p className="text-[10px]" style={{ color: '#b3b7bd' }}>
             © {new Date().getFullYear()} CaaS. All rights reserved.
           </p>
         </div>
