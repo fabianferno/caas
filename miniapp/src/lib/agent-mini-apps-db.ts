@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import client from "./mongodb";
+import { getMongoClient } from "./mongodb";
 import type { ObjectId } from "mongodb";
 
 export interface AgentMiniAppDoc {
@@ -28,7 +28,7 @@ export interface AgentMiniAppDoc {
 }
 
 function collection() {
-  return client.db("caas").collection<AgentMiniAppDoc>("agent_mini_apps");
+  return getMongoClient().db("caas").collection<AgentMiniAppDoc>("agent_mini_apps");
 }
 
 function hashKey(apiKey: string): string {
@@ -40,7 +40,7 @@ export async function registerApp(
   app: AgentMiniAppDoc["app"],
   skills: AgentMiniAppDoc["skills"]
 ): Promise<string> {
-  await client.connect();
+  await getMongoClient().connect();
   const col = collection();
   const apiKeyHash = hashKey(apiKey);
 
@@ -65,7 +65,7 @@ export async function registerApp(
 }
 
 export async function updateHeartbeat(apiKey: string): Promise<boolean> {
-  await client.connect();
+  await getMongoClient().connect();
   const col = collection();
   const result = await col.updateOne(
     { apiKeyHash: hashKey(apiKey) },
@@ -75,7 +75,7 @@ export async function updateHeartbeat(apiKey: string): Promise<boolean> {
 }
 
 export async function listApps(): Promise<AgentMiniAppDoc[]> {
-  await client.connect();
+  await getMongoClient().connect();
   const col = collection();
   const cutoff = new Date(Date.now() - 60_000);
   await col.updateMany(
@@ -86,7 +86,7 @@ export async function listApps(): Promise<AgentMiniAppDoc[]> {
 }
 
 export async function getAppSkills(id: string): Promise<AgentMiniAppDoc["skills"] | null> {
-  await client.connect();
+  await getMongoClient().connect();
   const { ObjectId } = await import("mongodb");
   const col = collection();
   let oid: ObjectId;

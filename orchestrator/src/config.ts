@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 export interface OrchestratorConfig {
   // Server
   port: number;
@@ -35,7 +37,7 @@ export function loadConfig(): OrchestratorConfig {
     dataDir: process.env.DATA_DIR || "./data",
     containerNetwork: process.env.CONTAINER_NETWORK || undefined,
 
-    deployerPrivateKey: deployerKey,
+    deployerPrivateKey: deployerKey.startsWith("0x") ? deployerKey : `0x${deployerKey}`,
     rpcUrl: process.env.RPC_URL || "https://evmrpc-testnet.0g.ai",
     ethRpcUrl: process.env.ETH_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com",
     awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
