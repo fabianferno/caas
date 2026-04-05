@@ -43,7 +43,7 @@ export default function Home() {
         </p>
       </Page.Header>
 
-      <Page.Main className="pb-24 px-5 pt-5 space-y-6" style={{ background: '#e0e5ec' } as React.CSSProperties}>
+      <Page.Main className="px-5 pt-5 pb-6 space-y-6" style={{ background: '#e0e5ec' } as React.CSSProperties}>
 
         {/* Quick Actions */}
         <section>
