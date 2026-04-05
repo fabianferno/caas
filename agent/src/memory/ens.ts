@@ -376,3 +376,39 @@ export async function readENSRecords(ensName: string, ethRpcUrl: string): Promis
 
   return { soul, personality, channels, skills: [] };
 }
+
+export async function writeINFTRecords(
+  agentName: string,
+  tokenId: bigint,
+  merkleRoot: string,
+  agentPrivateKey: string,
+  ethRpcUrl: string
+): Promise<{ inftTxHash: string; storageTxHash: string }> {
+  const { account, publicClient, walletClient } = makeClients(ethRpcUrl, agentPrivateKey);
+  const node = namehash(normalize(`${agentName}.caas.eth`));
+  console.log(`[ens] writeINFTRecords: node=${node} tokenId=${tokenId}`);
+
+  const inftHash = await walletClient.writeContract({
+    chain: sepolia,
+    account,
+    address: PUBLIC_RESOLVER,
+    abi: RESOLVER_ABI,
+    functionName: "setText",
+    args: [node, "caas.inft", tokenId.toString()],
+  });
+  console.log(`[ens] caas.inft tx: ${inftHash}`);
+  await publicClient.waitForTransactionReceipt({ hash: inftHash });
+
+  const storageHash = await walletClient.writeContract({
+    chain: sepolia,
+    account,
+    address: PUBLIC_RESOLVER,
+    abi: RESOLVER_ABI,
+    functionName: "setText",
+    args: [node, "caas.storage", merkleRoot],
+  });
+  console.log(`[ens] caas.storage tx: ${storageHash}`);
+  await publicClient.waitForTransactionReceipt({ hash: storageHash });
+
+  return { inftTxHash: inftHash, storageTxHash: storageHash };
+}

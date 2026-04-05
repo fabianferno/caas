@@ -17,6 +17,15 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
+type DeployStatus = "pending" | "in_progress" | "done" | "error";
+interface DeployStep { label: string; status: DeployStatus; }
+type DeployState = "idle" | "deploying" | "success" | "error";
+const DEPLOY_STEPS: DeployStep[] = [
+  { label: "Uploading to 0G Storage", status: "pending" },
+  { label: "Minting INFT on 0G Chain", status: "pending" },
+  { label: "Writing ENS Records", status: "pending" },
+];
+
 /* ── Shadow constants ── */
 const nmRaised   = { background: '#e0e5ec', boxShadow: '8px 8px 20px #b3b7bd, -8px -8px 20px rgba(255,255,255,0.5)' };
 const nmRaisedSm = { background: '#e0e5ec', boxShadow: '5px 5px 14px #b3b7bd, -5px -5px 14px rgba(255,255,255,0.5)' };
@@ -83,6 +92,11 @@ export default function Create() {
   const [showToken,   setShowToken]   = useState<Record<string, boolean>>({});
   const [memory,      setMemory]      = useState('encrypted-md');
 
+  const [deployState, setDeployState] = useState<DeployState>("idle");
+  const [deploySteps, setDeploySteps] = useState<DeployStep[]>(DEPLOY_STEPS.map(s => ({ ...s })));
+  const [deployResult, setDeployResult] = useState<{ tokenId: string; txHashes: string[] } | null>(null);
+  const [deployError, setDeployError] = useState<string | null>(null);
+
   const goNext = () => { if (step < 6) { setDir(1);  setStep(s => s + 1); } };
   const goPrev = () => { if (step > 1) { setDir(-1); setStep(s => s - 1); } };
 
@@ -106,6 +120,75 @@ export default function Create() {
     center: { x: 0, opacity: 1 },
     exit:   (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0 }),
   };
+
+  async function handleDeploy() {
+    if (!agentName) return;
+    setDeployState("deploying");
+    setDeploySteps(DEPLOY_STEPS.map(s => ({ ...s })));
+    setDeployError(null);
+
+    const setStepStatus = (index: number, status: DeployStatus) => {
+      setDeploySteps(prev => prev.map((s, i) => (i === index ? { ...s, status } : s)));
+    };
+
+    try {
+      // Derive AES key from SHA-256 of agent identity (hackathon: replace with wallet sig in production)
+      const keyMaterial = `caas-agent-key:${agentName}:${Date.now()}`;
+      const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(keyMaterial));
+      const aesKeyHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+      const soulContent = selectedSoul
+        ? `You are a ${selectedSoul.name} AI assistant. ${selectedSoul.desc}`
+        : "You are a helpful AI assistant.";
+      const skillsContent = JSON.stringify({ model: selectedModel?.id, channels: activeChannels.map(c => c.id) });
+      const configContent = JSON.stringify({ name: agentName, memory, soul: selectedSoul?.id });
+
+      setStepStatus(0, "in_progress");
+      const response = await fetch("/api/agent/deploy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agentName,
+          // TODO: replace with user's wallet address from MiniKit
+          ownerAddress: process.env.NEXT_PUBLIC_DEFAULT_OWNER_ADDRESS ?? "0x000000000000000000000000000000000000dEaD",
+          soul: soulContent,
+          skills: skillsContent,
+          config: configContent,
+          aesKeyHex,
+        }),
+      });
+
+      if (!response.ok || !response.body) throw new Error(`Deploy failed: ${response.status}`);
+
+      const reader = response.body.getReader();
+      const textDecoder = new TextDecoder();
+
+      let buffer = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += textDecoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines.filter(l => l.startsWith("data: "))) {
+          const event = JSON.parse(line.slice(6)) as Record<string, unknown>;
+          if (event.error) throw new Error(event.error as string);
+          if (event.step && event.status === "done") {
+            const idx = (event.step as number) - 1;
+            setStepStatus(idx, "done");
+            if (idx + 1 < DEPLOY_STEPS.length) setStepStatus(idx + 1, "in_progress");
+          }
+          if (event.done) {
+            setDeployResult({ tokenId: event.tokenId as string, txHashes: event.txHashes as string[] });
+            setDeployState("success");
+          }
+        }
+      }
+    } catch (err: unknown) {
+      setDeployError(err instanceof Error ? err.message : String(err));
+      setDeployState("error");
+    }
+  }
 
   return (
     <>
@@ -617,15 +700,79 @@ export default function Create() {
                     )}
                   </div>
 
-                  {/* Deploy CTA */}
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full h-14 rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2.5"
-                    style={nmBtn}
-                  >
-                    <Rocket size={18} />
-                    Deploy Agent
-                  </motion.button>
+                  {/* Deploy CTA / Progress / Result */}
+                  {deployState === "idle" && (
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleDeploy}
+                      className="w-full h-14 rounded-2xl font-bold text-[16px] flex items-center justify-center gap-2.5"
+                      style={nmBtn}
+                    >
+                      <Rocket size={18} />
+                      Deploy Agent
+                    </motion.button>
+                  )}
+
+                  {deployState === "deploying" && (
+                    <div className="flex flex-col gap-3 p-5 rounded-2xl" style={nmInset}>
+                      {deploySteps.map((s, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <span className="w-5 h-5 flex items-center justify-center shrink-0">
+                            {s.status === "done" && <Check size={16} style={{ color: '#22c55e' }} />}
+                            {s.status === "in_progress" && (
+                              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="#b3b7bd" strokeWidth="3" />
+                                <path d="M12 2a10 10 0 0 1 10 10" stroke="#7b96f5" strokeWidth="3" strokeLinecap="round" />
+                              </svg>
+                            )}
+                            {(s.status === "pending" || s.status === "error") && (
+                              <span className="w-2 h-2 rounded-full" style={{ background: s.status === "error" ? '#ef4444' : '#b3b7bd' }} />
+                            )}
+                          </span>
+                          <span className="text-[13px] font-medium" style={{ color: s.status === "in_progress" ? '#31456a' : '#8a9bb0' }}>
+                            {s.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {deployState === "success" && deployResult && (
+                    <div className="flex flex-col gap-4 p-5 rounded-2xl" style={nmInset}>
+                      <div className="flex flex-col items-center gap-1 text-center">
+                        <span className="w-10 h-10 rounded-full flex items-center justify-center mb-1" style={{ background: '#dcfce7' }}>
+                          <Check size={20} style={{ color: '#22c55e' }} />
+                        </span>
+                        <p className="font-bold text-[15px]" style={{ color: '#31456a' }}>Agent deployed</p>
+                        <p className="text-[12px] font-mono" style={{ color: '#8a9bb0' }}>{agentName}.caas.eth</p>
+                        <p className="text-[11px] font-mono mt-0.5" style={{ color: '#b3b7bd' }}>INFT #{deployResult.tokenId}</p>
+                      </div>
+                      <a
+                        href={`https://chainscan-galileo.0g.ai/tx/${deployResult.txHashes[0]}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full h-11 rounded-xl font-semibold text-[13px] flex items-center justify-center"
+                        style={nmRaisedSm}
+                      >
+                        View on 0G Explorer
+                      </a>
+                    </div>
+                  )}
+
+                  {deployState === "error" && (
+                    <div className="flex flex-col gap-3 p-5 rounded-2xl" style={nmInset}>
+                      <p className="text-[12px] font-semibold" style={{ color: '#ef4444' }}>Deploy failed</p>
+                      <p className="text-[11px]" style={{ color: '#8a9bb0' }}>{deployError}</p>
+                      <motion.button
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => { setDeployState("idle"); setDeploySteps(DEPLOY_STEPS.map(s => ({ ...s }))); }}
+                        className="w-full h-11 rounded-xl font-semibold text-[13px] flex items-center justify-center"
+                        style={nmBtn}
+                      >
+                        Retry
+                      </motion.button>
+                    </div>
+                  )}
 
                   <p className="text-center text-[11px] -mt-2" style={{ color: '#c0cad8' }}>
                     Your Claw will be live within seconds.
