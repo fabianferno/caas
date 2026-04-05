@@ -77,27 +77,27 @@ export default function Hero() {
       </div>
 
       {/* Metallic logo — fills available space between headline and cards */}
-      <div className="h-robot flex-1 min-h-0 flex items-center justify-center" style={{ minHeight: 220 }}>
+      <div className="h-robot flex-1 min-h-0" style={{ minHeight: 260 }}>
         <MetallicPaint
           imageSrc="/caas-logo-metallic.svg"
-          seed={7}
-          scale={3.5}
-          speed={0.25}
-          liquid={0.85}
-          brightness={2.2}
-          contrast={0.45}
-          refraction={0.012}
-          blur={0.01}
-          fresnel={1.2}
-          chromaticSpread={2.5}
-          waveAmplitude={0.9}
-          noiseScale={0.45}
-          patternSharpness={1.1}
-          distortion={0.8}
-          contour={0.15}
-          lightColor="#ffffff"
-          darkColor="#31456a"
-          tintColor="#7b96f5"
+          seed={14}
+          scale={2.8}
+          speed={0.55}
+          liquid={0.92}
+          brightness={2.6}
+          contrast={0.38}
+          refraction={0.018}
+          blur={0.008}
+          fresnel={1.6}
+          chromaticSpread={4.5}
+          waveAmplitude={1.5}
+          noiseScale={0.35}
+          patternSharpness={0.85}
+          distortion={1.3}
+          contour={0.08}
+          lightColor="#e8eeff"
+          darkColor="#1a2d5a"
+          tintColor="#a5b8ff"
           mouseAnimation={false}
         />
       </div>
