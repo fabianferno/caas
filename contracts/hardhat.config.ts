@@ -12,7 +12,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS, async (_, { config: hreConfig })
   const projectRoot = hreConfig.paths.root;
   const files = glob.sync("**/*.sol", {
     cwd: projectRoot,
-    ignore: ["node_modules/**", "cache/**", "artifacts/**"],
+    ignore: ["node_modules/**", "cache/**", "artifacts/**", "typechain-types/**"],
     absolute: true,
   });
   return files;
