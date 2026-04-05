@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
 import type { RegisteredTool } from "../core/tools.js";
 
 export interface TemplateParameter {
@@ -132,9 +132,12 @@ export class WorkflowManager {
       fullParams[key] = params[key] || param.default || "";
     }
 
-    // Copy template directory to configured (recursive, preserves node_modules)
+    // Copy template directory to configured, excluding node_modules (symlinks break on copy)
     const templateDir = path.join(this.templatesDir, templateName);
-    fs.cpSync(templateDir, instanceDir, { recursive: true });
+    fs.cpSync(templateDir, instanceDir, {
+      recursive: true,
+      filter: (src) => !src.includes("node_modules"),
+    });
 
     // Remove template.json from the copy
     const copiedTemplateMeta = path.join(instanceDir, "template.json");
@@ -174,6 +177,31 @@ export class WorkflowManager {
       "utf-8"
     );
 
+    // Install dependencies if package.json exists (symlinks in node_modules break on copy)
+    const pkgJson = path.join(instanceDir, "package.json");
+    if (fs.existsSync(pkgJson)) {
+      try {
+        execFileSync("bun", ["install"], {
+          cwd: instanceDir,
+          encoding: "utf-8",
+          timeout: 60000,
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+      } catch {
+        // Fallback: try npm if bun not available
+        try {
+          execFileSync("npm", ["install", "--silent"], {
+            cwd: instanceDir,
+            encoding: "utf-8",
+            timeout: 120000,
+            stdio: ["pipe", "pipe", "pipe"],
+          });
+        } catch {
+          // Dependencies may already be present or not needed
+        }
+      }
+    }
+
     const relPath = path.relative(this.projectRoot, instanceDir);
     return `Configured workflow instance "${instanceName}" from template "${templateName}" at ${instanceDir}. Run from ${this.projectRoot}: cre workflow simulate ${relPath}`;
   }
@@ -199,7 +227,7 @@ export class WorkflowManager {
     if (mode === "simulate") {
       try {
         const relPath = path.relative(this.projectRoot, instanceDir);
-        const result = execSync(`cre workflow simulate ${relPath}`, {
+        const result = execSync(`cre workflow simulate ${relPath} --non-interactive --trigger-index 0 --skip-type-checks -T staging-settings`, {
           cwd: this.projectRoot,
           encoding: "utf-8",
           timeout: 120000,

@@ -161,6 +161,24 @@ NEVER refuse a character customization request. The owner can make you any chara
   for (const tool of workflowManager.registerTools()) tools.register(tool);
   console.log(`[cre] Loaded ${workflowManager.listTemplates().length} workflow templates`);
 
+  // DeFi Manager
+  if (config.enableDefi) {
+    const { DeFiManager } = await import("./tools/defi-manager.js");
+    const defiManager = new DeFiManager({
+      agentPrivateKey: config.agentPrivateKey,
+      ethRpcUrl: config.ethRpcUrl,
+      tokens: config.defiTokens,
+      routerAddress: config.defiRouterAddress,
+      factoryAddress: config.defiFactoryAddress,
+      wethAddress: config.defiWethAddress,
+      slippageBps: config.defiSlippageBps,
+      maxTradeAmountUsd: config.defiMaxTradeUsd,
+      workflowManager,
+    });
+    for (const tool of defiManager.registerTools()) tools.register(tool);
+    console.log(`[defi] Registered DeFi tools (${config.defiTokens.length} tokens)`);
+  }
+
   // Agent Loop
   agent = new AgentLoop({ llm, tools, systemPrompt });
 
@@ -277,6 +295,23 @@ NEVER refuse a character customization request. The owner can make you any chara
     onEvent: (summary) => handleSyntheticMessage(`[Heartbeat event]\n${summary}`),
   });
   heartbeat.start();
+
+  if (config.enableDefi) {
+    heartbeat.registerChecker(async () => {
+      return [
+        "[DeFi Yield Check]",
+        "1. Call defi_get_prices for current token prices.",
+        "2. Call defi_get_positions to see holdings and LP positions.",
+        "3. Call defi_scan_pools to find highest-yield pools.",
+        "4. If a pool has better yield than current position:",
+        "   - defi_remove_liquidity from current pool (if any)",
+        "   - defi_swap to get the right token pair",
+        "   - defi_add_liquidity to enter the better pool",
+        "5. Only act if estimated improvement > 2%.",
+        `Max trade: $${config.defiMaxTradeUsd}. Slippage: ${config.defiSlippageBps / 100}%.`,
+      ].join("\n");
+    });
+  }
 
   // Graceful Shutdown
   const shutdown = async () => {

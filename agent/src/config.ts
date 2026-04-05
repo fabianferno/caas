@@ -26,6 +26,14 @@ export interface Config {
   creTemplatesDir: string;
   creConfiguredDir: string;
   heartbeatInterval: number;
+  // DeFi
+  enableDefi: boolean;
+  defiTokens: { symbol: string; address: string; decimals: number; coingeckoId: string }[];
+  defiRouterAddress: string;
+  defiFactoryAddress: string;
+  defiWethAddress: string;
+  defiSlippageBps: number;
+  defiMaxTradeUsd: number;
   // Bedrock fallback
   awsAccessKeyId?: string;
   awsSecretAccessKey?: string;
@@ -69,6 +77,17 @@ export function loadConfig(): Config {
       process.env.HEARTBEAT_INTERVAL || "300000",
       10
     ),
+    enableDefi: process.env.ENABLE_DEFI === "true",
+    defiTokens: process.env.DEFI_TOKENS ? JSON.parse(process.env.DEFI_TOKENS) : [
+      { symbol: "WETH", address: "0xfff9976782d46cc05630d1f6ebab18b2324d6b14", decimals: 18, coingeckoId: "ethereum" },
+      { symbol: "USDC", address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238", decimals: 6, coingeckoId: "usd-coin" },
+      { symbol: "LINK", address: "0x779877A7B0D9E8603169DdbD7836e478b4624789", decimals: 18, coingeckoId: "chainlink" },
+    ],
+    defiRouterAddress: process.env.DEFI_ROUTER_ADDRESS || "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3",
+    defiFactoryAddress: process.env.DEFI_FACTORY_ADDRESS || "0xF62c03E08ada871A0bEb309762E260a7a6a880E6",
+    defiWethAddress: process.env.DEFI_WETH_ADDRESS || "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+    defiSlippageBps: parseInt(process.env.DEFI_SLIPPAGE_BPS || "100", 10),
+    defiMaxTradeUsd: parseFloat(process.env.DEFI_MAX_TRADE_USD || "100"),
     awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || undefined,
     awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || undefined,
     awsRegion: process.env.AWS_REGION || "us-east-1",
