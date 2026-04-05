@@ -58,3 +58,38 @@ describe("ToolRegistry", () => {
     await expect(registry.execute("nope", "{}")).rejects.toThrow("Unknown tool: nope");
   });
 });
+
+describe("ToolRegistry context", () => {
+  it("returns empty context by default", () => {
+    const registry = new ToolRegistry();
+    expect(registry.getContext()).toEqual({});
+  });
+
+  it("stores and retrieves context", () => {
+    const registry = new ToolRegistry();
+    registry.setContext({ userId: "user-123" });
+    expect(registry.getContext()).toEqual({ userId: "user-123" });
+  });
+
+  it("overwrites previous context on setContext", () => {
+    const registry = new ToolRegistry();
+    registry.setContext({ userId: "a" });
+    registry.setContext({ userId: "b" });
+    expect(registry.getContext().userId).toBe("b");
+  });
+});
+
+describe("ToolRegistry unregister", () => {
+  it("removes a registered tool", () => {
+    const registry = new ToolRegistry();
+    registry.register({ name: "temp", description: "x", parameters: {}, handler: async () => "" });
+    expect(registry.has("temp")).toBe(true);
+    registry.unregister("temp");
+    expect(registry.has("temp")).toBe(false);
+  });
+
+  it("is a no-op for unknown tool name", () => {
+    const registry = new ToolRegistry();
+    expect(() => registry.unregister("does-not-exist")).not.toThrow();
+  });
+});

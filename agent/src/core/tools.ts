@@ -18,9 +18,22 @@ export interface OpenAITool {
 
 export class ToolRegistry {
   private tools = new Map<string, RegisteredTool>();
+  private context: Record<string, unknown> = {};
 
   register(tool: RegisteredTool): void {
     this.tools.set(tool.name, tool);
+  }
+
+  unregister(name: string): void {
+    this.tools.delete(name);
+  }
+
+  setContext(ctx: Record<string, unknown>): void {
+    this.context = ctx;
+  }
+
+  getContext(): Record<string, unknown> {
+    return this.context;
   }
 
   get(name: string): RegisteredTool | undefined {
