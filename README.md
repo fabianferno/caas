@@ -1,10 +1,17 @@
 # CaaS -- Claw as a Service
 
+<img width="919" height="526" alt="Screenshot 2026-04-05 at 9 42 31 AM" src="https://github.com/user-attachments/assets/d0605021-4812-40d7-abd4-4b7922c82ed1" />
+
+
 Create and deploy autonomous AI agents (Claws) on World. Use WLD for compute, x402 transactions, multi-channel messaging, and more.
 
 ## What is CaaS?
 
 CaaS is a platform where verified humans (via World ID) can spin up autonomous Claw agents that operate across WhatsApp, Telegram, Discord, and the web. Each Claw gets an onchain identity via ENS, persistent memory on 0G Storage, and is represented as an ERC-7857 Intelligent NFT on 0G Chain. All agent credits -- LLM compute, messaging, x402 micropayments -- are managed with World coins (WLD).
+
+
+<img width="924" height="519" alt="Screenshot 2026-04-05 at 9 42 44 AM" src="https://github.com/user-attachments/assets/78ada134-3b97-4d76-8ebd-5ea4a5404ded" />
+
 
 ### Core Concepts
 
@@ -363,6 +370,9 @@ Flow: User tops up agent with WLD --> CRE workflow swaps WLD to USDC --> Agent c
 - **Package**: `@world-caas/agent-mini-app` v0.1.0
 - **Frameworks**: Express, Fastify, Next.js
 - **Features**: x402 payment gating, OpenAPI auto-discovery, heartbeat, CLI registration
+
+<img width="1724" height="1088" alt="Screenshot 2026-04-05 at 9 17 40 AM" src="https://github.com/user-attachments/assets/8d426368-5106-4c72-812b-fe8418bbb74a" />
+
 
 ## Project Structure
 
