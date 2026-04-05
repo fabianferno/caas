@@ -15,11 +15,39 @@ async function resolveSkills(config: AgentAppConfig): Promise<Skill[]> {
   throw new Error("[agent-mini-app] provide either skills[] or openApiSpec in config");
 }
 
+async function registerWithCaas(
+  caasApiUrl: string,
+  config: AgentAppConfig,
+  skills: Skill[]
+): Promise<void> {
+  try {
+    const res = await fetch(`${caasApiUrl}/api/agent-apps/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        apiKey: config.apiKey,
+        url: config.app.url,
+        app: config.app,
+        skills,
+      }),
+    });
+    if (res.ok) {
+      const body = await res.json() as { id?: string };
+      console.log(`[agent-mini-app] registered with CaaS (id: ${body.id})`);
+    } else {
+      console.warn(`[agent-mini-app] registration failed: HTTP ${res.status}`);
+    }
+  } catch (err) {
+    console.warn(`[agent-mini-app] could not reach CaaS to register: ${(err as Error).message}`);
+  }
+}
+
 export async function createExpressMiddleware(config: AgentAppConfig) {
   const skills = await resolveSkills(config);
   const caasApiUrl = config.caasApiUrl ?? DEFAULT_CAAS_API_URL;
   const startedAt = Date.now();
   const { getLastHeartbeat } = startHeartbeat(caasApiUrl, config.apiKey);
+  await registerWithCaas(caasApiUrl, config, skills);
 
   return async function agentMiniAppMiddleware(
     req: { method: string; path: string; headers: Record<string, string | string[] | undefined> },
@@ -70,6 +98,7 @@ export function createNextMiddleware(config: AgentAppConfig) {
     const caasApiUrl = config.caasApiUrl ?? DEFAULT_CAAS_API_URL;
     const hb = startHeartbeat(caasApiUrl, config.apiKey);
     getLastHeartbeat = hb.getLastHeartbeat;
+    await registerWithCaas(caasApiUrl, config, skills);
   }
 
   function jsonRes(body: unknown, status = 200): Response {
@@ -113,6 +142,7 @@ export async function createFastifyPlugin(config: AgentAppConfig) {
   const caasApiUrl = config.caasApiUrl ?? DEFAULT_CAAS_API_URL;
   const startedAt = Date.now();
   const { getLastHeartbeat } = startHeartbeat(caasApiUrl, config.apiKey);
+  await registerWithCaas(caasApiUrl, config, skills);
 
   type FastifyReply = {
     send: (body: unknown) => void;
