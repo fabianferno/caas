@@ -4,8 +4,11 @@ import http from "node:http";
 import type { Channel, MessageHandler, IncomingMessage } from "./types.js";
 import type { AgentResponse } from "../core/types.js";
 
+import type { Router } from "express";
+
 export interface WebChatChannelOptions {
   port: number;
+  routers?: Router[];
 }
 
 interface WSMessage {
@@ -22,15 +25,18 @@ export class WebChatChannel implements Channel {
   private wss: WebSocketServer | null = null;
   private handler: MessageHandler | null = null;
   private connections = new Map<string, WebSocket>();
+  private routers: Router[];
 
   constructor(opts: WebChatChannelOptions) {
     this.port = opts.port;
+    this.routers = opts.routers || [];
   }
 
   async start(): Promise<void> {
     const app = express();
     app.use(express.json());
     app.get("/health", (_req, res) => { res.json({ status: "ok" }); });
+    for (const router of this.routers) app.use(router);
 
     this.server = http.createServer(app);
     this.wss = new WebSocketServer({ server: this.server });
