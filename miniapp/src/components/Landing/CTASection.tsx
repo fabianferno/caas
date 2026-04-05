@@ -55,7 +55,6 @@ export default function CTASection() {
             style={{ borderTop: "1px solid rgba(163, 177, 198, 0.5)" }}
           >
             {[
-              { val: "38M+", label: "Users" },
               { val: "< 1min", label: "Deploy" },
               { val: "0 code", label: "Required" },
             ].map(({ val, label }) => (

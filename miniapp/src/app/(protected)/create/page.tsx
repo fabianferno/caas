@@ -339,9 +339,16 @@ export default function Create() {
                         <img src={avatarUrl(avatars[prevAvatarIdx].seed, avatars[prevAvatarIdx].bg)} alt="" className="w-full h-full" />
                       </motion.button>
 
-                      {/* Center — single img load */}
-                      <div
-                        className="relative w-[148px] h-[148px] shrink-0 rounded-3xl overflow-hidden"
+                      {/* Center — swipeable */}
+                      <motion.div
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.18}
+                        onDragEnd={(_, info) => {
+                          if (info.offset.x < -40) goAvatarNext();
+                          else if (info.offset.x > 40) goAvatarPrev();
+                        }}
+                        className="relative w-[148px] h-[148px] shrink-0 rounded-3xl overflow-hidden cursor-grab active:cursor-grabbing"
                         style={{ boxShadow: '8px 8px 20px #b3b7bd, -8px -8px 20px rgba(255,255,255,0.5)' }}
                       >
                         <AnimatePresence mode="sync" custom={avatarDir} initial={false}>
@@ -366,7 +373,7 @@ export default function Create() {
                             />
                           </motion.div>
                         </AnimatePresence>
-                      </div>
+                      </motion.div>
 
                       {/* Next */}
                       <motion.button
