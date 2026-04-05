@@ -59,11 +59,18 @@ export async function createExpressMiddleware(config: AgentAppConfig) {
   };
 }
 
-export async function createNextMiddleware(config: AgentAppConfig) {
-  const skills = await resolveSkills(config);
-  const caasApiUrl = config.caasApiUrl ?? DEFAULT_CAAS_API_URL;
+export function createNextMiddleware(config: AgentAppConfig) {
+  let skills: Skill[] | null = null;
+  let getLastHeartbeat: (() => string | null) | null = null;
   const startedAt = Date.now();
-  const { getLastHeartbeat } = startHeartbeat(caasApiUrl, config.apiKey);
+
+  async function init() {
+    if (skills) return;
+    skills = await resolveSkills(config);
+    const caasApiUrl = config.caasApiUrl ?? DEFAULT_CAAS_API_URL;
+    const hb = startHeartbeat(caasApiUrl, config.apiKey);
+    getLastHeartbeat = hb.getLastHeartbeat;
+  }
 
   function jsonRes(body: unknown, status = 200): Response {
     return new Response(JSON.stringify(body), {
@@ -75,16 +82,18 @@ export async function createNextMiddleware(config: AgentAppConfig) {
   return async function agentMiniAppMiddleware(
     request: { method: string; nextUrl: { pathname: string }; headers: { get: (name: string) => string | null } }
   ) {
+    await init();
+
     const pathname = request.nextUrl.pathname;
 
     if (pathname === `${CAAS_NAMESPACE}/handshake`) return jsonRes(buildHandshake());
-    if (pathname === `${CAAS_NAMESPACE}/skills`)    return jsonRes(buildManifest(config, skills));
-    if (pathname === `${CAAS_NAMESPACE}/health`)    return jsonRes(buildHealth(startedAt, getLastHeartbeat()));
+    if (pathname === `${CAAS_NAMESPACE}/skills`)    return jsonRes(buildManifest(config, skills!));
+    if (pathname === `${CAAS_NAMESPACE}/health`)    return jsonRes(buildHealth(startedAt, getLastHeartbeat!()));
 
-    // next() — pass through to actual route handler
+    // next() -- pass through to actual route handler
     const nextRes = () => new Response(null, { headers: { "x-middleware-next": "1" } });
 
-    const skill = findMatchingSkill(pathname, request.method, skills);
+    const skill = findMatchingSkill(pathname, request.method, skills!);
     if (!skill) return nextRes();
 
     const paymentHeader = request.headers.get("x-payment");

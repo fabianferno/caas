@@ -1,6 +1,6 @@
 import { createAgentApp } from "@world-caas/agent-mini-app";
 
-export default await createAgentApp({
+export default createAgentApp({
   framework: "next",
   apiKey: process.env.CAAS_API_KEY!,
   walletAddress: process.env.AGENT_WALLET!,
