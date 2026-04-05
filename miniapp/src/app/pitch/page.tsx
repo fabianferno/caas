@@ -3,9 +3,19 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ACCENT = "#ea580c";
-const ACCENT_LIGHT = "#f97316";
+const BG = "#e0e5ec";
+const ACCENT = "#7b96f5";
+const ACCENT_2 = "#6dd5d9";
+const FG = "#31456a";
+const MUTED = "#8a9bb0";
+const DARK_SHADOW = "#b3b7bd";
+const LIGHT_SHADOW = "rgba(255,255,255,0.8)";
 const TOTAL_SLIDES = 6;
+
+// -- Neumorphic shadow helpers --
+const nmRaised = `6px 6px 16px ${DARK_SHADOW}, -6px -6px 16px ${LIGHT_SHADOW}`;
+const nmRaisedSm = `4px 4px 12px ${DARK_SHADOW}, -4px -4px 12px ${LIGHT_SHADOW}`;
+const nmInset = `inset 5px 5px 14px ${DARK_SHADOW}, inset -5px -5px 14px ${LIGHT_SHADOW}`;
 
 // -- Animation variants --
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +86,7 @@ function Slide({
     <div
       ref={ref}
       className="h-screen w-full flex items-center justify-center"
-      style={{ scrollSnapAlign: "start", minHeight: "100dvh" }}
+      style={{ scrollSnapAlign: "start", minHeight: "100dvh", background: BG }}
     >
       <AnimatePresence>
         {isVisible && (
@@ -104,7 +114,7 @@ function TitleSlide() {
         custom={0}
         variants={scaleIn}
         className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-2"
-        style={{ background: `${ACCENT}20`, border: `2px solid ${ACCENT}40` }}
+        style={{ background: BG, boxShadow: nmRaised }}
       >
         <span className="font-heading" style={{ color: ACCENT }}>C</span>
       </motion.div>
@@ -112,7 +122,8 @@ function TitleSlide() {
       <motion.h1
         custom={1}
         variants={fadeUp}
-        className="text-5xl md:text-7xl font-heading tracking-tight text-white"
+        className="text-5xl md:text-7xl font-heading tracking-tight"
+        style={{ color: FG }}
       >
         CaaS
       </motion.h1>
@@ -121,22 +132,22 @@ function TitleSlide() {
         custom={2}
         variants={fadeUp}
         className="text-lg md:text-2xl max-w-xl"
-        style={{ color: "rgba(255,255,255,0.6)" }}
+        style={{ color: MUTED }}
       >
         Spin up autonomous AI agents.{" "}
-        <span style={{ color: ACCENT_LIGHT }}>Pay with World.</span>
+        <span style={{ color: ACCENT }}>Pay with World.</span>
       </motion.p>
 
-      <motion.div custom={3} variants={fadeUp} className="flex gap-3 mt-2">
+      <motion.div custom={3} variants={fadeUp} className="flex flex-wrap gap-3 mt-2 justify-center">
         {["World Mini App", "ENS Identity", "x402 Payments", "Multi-Channel"].map(
           (tag) => (
             <span
               key={tag}
               className="px-3 py-1 rounded-full text-xs font-mono"
               style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.5)",
+                background: BG,
+                boxShadow: nmRaisedSm,
+                color: MUTED,
               }}
             >
               {tag}
@@ -149,7 +160,7 @@ function TitleSlide() {
         custom={4}
         variants={fadeUp}
         className="mt-12 animate-bounce"
-        style={{ color: "rgba(255,255,255,0.3)" }}
+        style={{ color: MUTED }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9l6 6 6-6" />
@@ -192,7 +203,8 @@ function ProblemSlide() {
       <motion.h2
         custom={1}
         variants={fadeUp}
-        className="text-4xl md:text-5xl font-heading text-white mb-3"
+        className="text-4xl md:text-5xl font-heading mb-3"
+        style={{ color: FG }}
       >
         Deploying an AI agent is{" "}
         <span style={{ color: "#ef4444" }}>painful</span>
@@ -202,7 +214,7 @@ function ProblemSlide() {
         custom={2}
         variants={fadeUp}
         className="text-base mb-10"
-        style={{ color: "rgba(255,255,255,0.5)" }}
+        style={{ color: MUTED }}
       >
         Today you need 6+ separate services stitched together just to get a bot running.
       </motion.p>
@@ -220,8 +232,8 @@ function ProblemSlide() {
             variants={scaleIn}
             className="rounded-2xl p-5 flex flex-col gap-2"
             style={{
-              background: "rgba(239,68,68,0.04)",
-              border: "1px solid rgba(239,68,68,0.15)",
+              background: BG,
+              boxShadow: nmRaised,
             }}
           >
             <svg
@@ -237,8 +249,8 @@ function ProblemSlide() {
             >
               {icons[p.icon]}
             </svg>
-            <span className="text-sm font-medium text-white">{p.label}</span>
-            <span className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <span className="text-sm font-medium" style={{ color: FG }}>{p.label}</span>
+            <span className="text-xs" style={{ color: MUTED }}>
               {p.desc}
             </span>
           </motion.div>
@@ -269,17 +281,18 @@ function SolutionSlide() {
       <motion.h2
         custom={1}
         variants={fadeUp}
-        className="text-4xl md:text-5xl font-heading text-white mb-4"
+        className="text-4xl md:text-5xl font-heading mb-4"
+        style={{ color: FG }}
       >
         One platform.{" "}
-        <span style={{ color: ACCENT_LIGHT }}>Human-verified agents.</span>
+        <span style={{ color: ACCENT }}>Human-verified agents.</span>
       </motion.h2>
 
       <motion.p
         custom={2}
         variants={fadeUp}
         className="text-base max-w-2xl mb-8"
-        style={{ color: "rgba(255,255,255,0.5)" }}
+        style={{ color: MUTED }}
       >
         CaaS lets any verified human deploy a fully autonomous AI agent across
         WhatsApp, Telegram, web, and x402 APIs -- funded entirely with WLD.
@@ -291,11 +304,11 @@ function SolutionSlide() {
         variants={fadeUp}
         className="rounded-2xl p-6 mb-8"
         style={{
-          background: `${ACCENT}08`,
-          border: `1px solid ${ACCENT}30`,
+          background: BG,
+          boxShadow: nmInset,
         }}
       >
-        <p className="text-lg italic" style={{ color: "rgba(255,255,255,0.7)" }}>
+        <p className="text-lg italic" style={{ color: MUTED }}>
           &quot;Any verified human can deploy a fully-functional AI agent in under
           5 minutes that can think, remember, transact, and operate
           autonomously.&quot;
@@ -315,14 +328,14 @@ function SolutionSlide() {
             variants={scaleIn}
             className="rounded-2xl p-5 text-center"
             style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: BG,
+              boxShadow: nmRaised,
             }}
           >
-            <p className="text-3xl md:text-4xl font-heading" style={{ color: ACCENT_LIGHT }}>
+            <p className="text-3xl md:text-4xl font-heading" style={{ color: ACCENT }}>
               {s.value}
             </p>
-            <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+            <p className="text-xs mt-1" style={{ color: MUTED }}>
               {s.label}
             </p>
           </motion.div>
@@ -355,7 +368,8 @@ function HowItWorksSlide() {
       <motion.h2
         custom={1}
         variants={fadeUp}
-        className="text-4xl md:text-5xl font-heading text-white mb-10"
+        className="text-4xl md:text-5xl font-heading mb-10"
+        style={{ color: FG }}
       >
         Five steps to a live agent
       </motion.h2>
@@ -366,26 +380,26 @@ function HowItWorksSlide() {
             key={step.num}
             custom={i + 2}
             variants={slideFromLeft}
-            className="flex items-center gap-5 rounded-2xl p-5 group"
+            className="flex items-center gap-5 rounded-2xl p-5"
             style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              transition: "border-color 0.3s",
+              background: BG,
+              boxShadow: nmRaisedSm,
+              transition: "box-shadow 0.2s ease",
             }}
             whileHover={{
-              borderColor: `${ACCENT}50`,
+              boxShadow: `8px 8px 20px ${DARK_SHADOW}, -8px -8px 20px ${LIGHT_SHADOW}`,
               transition: { duration: 0.2 },
             }}
           >
             <span
               className="text-sm font-mono shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: `${ACCENT}15`, color: ACCENT }}
+              style={{ background: BG, boxShadow: nmInset, color: ACCENT }}
             >
               {step.num}
             </span>
             <div>
-              <p className="text-white font-medium">{step.title}</p>
-              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p className="font-medium" style={{ color: FG }}>{step.title}</p>
+              <p className="text-xs mt-0.5" style={{ color: MUTED }}>
                 {step.desc}
               </p>
             </div>
@@ -438,9 +452,10 @@ function TechSlide() {
       <motion.h2
         custom={1}
         variants={fadeUp}
-        className="text-4xl md:text-5xl font-heading text-white mb-10"
+        className="text-4xl md:text-5xl font-heading mb-10"
+        style={{ color: FG }}
       >
-        Built on <span style={{ color: ACCENT_LIGHT }}>composable</span> primitives
+        Built on <span style={{ color: ACCENT_2 }}>composable</span> primitives
       </motion.h2>
 
       <motion.div
@@ -456,14 +471,14 @@ function TechSlide() {
             variants={scaleIn}
             className="rounded-2xl p-6"
             style={{
-              background: t.primary ? `${ACCENT}06` : "rgba(255,255,255,0.02)",
-              border: t.primary
-                ? `1px solid ${ACCENT}30`
-                : "1px solid rgba(255,255,255,0.08)",
+              background: BG,
+              boxShadow: t.primary
+                ? `6px 6px 16px ${DARK_SHADOW}, -6px -6px 16px ${LIGHT_SHADOW}, inset 0 0 0 2px ${ACCENT}40`
+                : nmRaised,
             }}
           >
-            <p className="text-white font-medium text-lg mb-1">{t.title}</p>
-            <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="font-medium text-lg mb-1" style={{ color: FG }}>{t.title}</p>
+            <p className="text-sm mb-3" style={{ color: MUTED }}>
               {t.desc}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -472,9 +487,9 @@ function TechSlide() {
                   key={tag}
                   className="px-2 py-0.5 rounded-full text-xs font-mono"
                   style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.5)",
+                    background: BG,
+                    boxShadow: nmInset,
+                    color: MUTED,
                   }}
                 >
                   {tag}
@@ -512,10 +527,11 @@ function CTASlide() {
       <motion.h2
         custom={1}
         variants={fadeUp}
-        className="text-4xl md:text-6xl font-heading text-white"
+        className="text-4xl md:text-6xl font-heading"
+        style={{ color: FG }}
       >
         The future of agents is{" "}
-        <span style={{ color: ACCENT_LIGHT }}>human-verified</span>
+        <span style={{ color: ACCENT }}>human-verified</span>
       </motion.h2>
 
       <motion.div
@@ -531,8 +547,8 @@ function CTASlide() {
             variants={scaleIn}
             className="flex items-start gap-2 rounded-xl p-3"
             style={{
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: BG,
+              boxShadow: nmRaisedSm,
             }}
           >
             <svg
@@ -540,7 +556,7 @@ function CTASlide() {
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={ACCENT_LIGHT}
+              stroke={ACCENT}
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -548,7 +564,7 @@ function CTASlide() {
             >
               <path d="M20 6L9 17l-5-5" />
             </svg>
-            <span className="text-xs md:text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+            <span className="text-xs md:text-sm" style={{ color: MUTED }}>
               {d}
             </span>
           </motion.div>
@@ -556,18 +572,18 @@ function CTASlide() {
       </motion.div>
 
       <motion.div custom={8} variants={fadeUp} className="mt-8 flex flex-col items-center gap-3">
-        <p className="text-sm font-mono" style={{ color: "rgba(255,255,255,0.3)" }}>
+        <p className="text-sm font-mono" style={{ color: MUTED }}>
           Built for the World ecosystem
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 justify-center">
           {["World", "0G", "ENS", "Chainlink", "Coinbase"].map((sponsor) => (
             <span
               key={sponsor}
               className="px-3 py-1 rounded-full text-xs font-mono"
               style={{
-                background: `${ACCENT}10`,
-                border: `1px solid ${ACCENT}25`,
-                color: ACCENT_LIGHT,
+                background: BG,
+                boxShadow: nmRaisedSm,
+                color: ACCENT,
               }}
             >
               {sponsor}
@@ -634,13 +650,13 @@ export default function PitchPage() {
 
   return (
     <div
-      className="relative bg-[#111111] min-h-screen"
-      style={{ color: "white" }}
+      className="relative min-h-screen"
+      style={{ background: BG, color: FG }}
     >
       {/* Slide counter - bottom right */}
       <div
         className="fixed bottom-6 right-6 z-50 text-xs font-mono select-none"
-        style={{ color: "rgba(255,255,255,0.25)" }}
+        style={{ color: MUTED }}
       >
         {String(currentSlide + 1).padStart(2, "0")} / {String(TOTAL_SLIDES).padStart(2, "0")}
       </div>
@@ -656,8 +672,8 @@ export default function PitchPage() {
               width: 8,
               height: currentSlide === i ? 28 : 8,
               borderRadius: 4,
-              background:
-                currentSlide === i ? ACCENT : "rgba(255,255,255,0.2)",
+              background: currentSlide === i ? ACCENT : DARK_SHADOW,
+              boxShadow: currentSlide === i ? nmRaisedSm : "none",
             }}
             aria-label={`Go to slide ${i + 1}`}
           />
@@ -668,11 +684,11 @@ export default function PitchPage() {
       {currentSlide > 0 && (
         <button
           onClick={() => scrollTo(currentSlide - 1)}
-          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 p-2 rounded-full transition-colors"
-          style={{ background: "rgba(255,255,255,0.05)" }}
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 p-2 rounded-full transition-all"
+          style={{ background: BG, boxShadow: nmRaisedSm }}
           aria-label="Previous slide"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2">
             <path d="M18 15l-6-6-6 6" />
           </svg>
         </button>
@@ -680,11 +696,11 @@ export default function PitchPage() {
       {currentSlide < TOTAL_SLIDES - 1 && (
         <button
           onClick={() => scrollTo(currentSlide + 1)}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 p-2 rounded-full transition-colors"
-          style={{ background: "rgba(255,255,255,0.05)" }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 p-2 rounded-full transition-all"
+          style={{ background: BG, boxShadow: nmRaisedSm }}
           aria-label="Next slide"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={MUTED} strokeWidth="2">
             <path d="M6 9l6 6 6-6" />
           </svg>
         </button>
@@ -693,7 +709,7 @@ export default function PitchPage() {
       {/* Keyboard hint */}
       <div
         className="fixed bottom-6 left-6 z-50 text-xs font-mono select-none hidden md:block"
-        style={{ color: "rgba(255,255,255,0.2)" }}
+        style={{ color: MUTED }}
       >
         arrows / space to navigate
       </div>
