@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Send, MessageCircle, MessagesSquare, Store, User,
+  Zap, LayoutGrid, Cpu,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
@@ -61,9 +62,12 @@ export default function Home() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, typing]);
 
   const cards = [
-    { label: 'Chat',          sub: 'Talk to your agent',       icon: MessageCircle, color: '#7b96f5', action: openChat },
-    { label: 'Conversations', sub: 'Agent friends & AI logs',  icon: MessagesSquare, color: '#6dd5d9', action: () => router.push('/conversations') },
-    { label: 'Marketplace',   sub: 'Discover agents',          icon: Store,          color: '#f97316', action: () => {} },
+    { label: 'Chat',           sub: 'Talk to your agent',       icon: MessageCircle, color: '#7b96f5', action: openChat },
+    { label: 'Conversations',  sub: 'Agent friends & AI logs',  icon: MessagesSquare, color: '#6dd5d9', action: () => router.push('/conversations') },
+    { label: 'Marketplace',    sub: 'Services & integrations',  icon: Store,          color: '#f97316', action: () => router.push('/marketplace') },
+    { label: 'Skills',         sub: 'Agent capabilities',       icon: Zap,            color: '#8b5cf6', action: () => {} },
+    { label: 'Mini App Store', sub: 'Agent mini apps',          icon: LayoutGrid,     color: '#10b981', action: () => {} },
+    { label: 'MCPs',           sub: 'Model context protocols',  icon: Cpu,            color: '#f59e0b', action: () => {} },
   ];
 
   return (
@@ -100,12 +104,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 2 + 1 action cards */}
+        {/* 6 action cards — 3x2 grid */}
         <div className="grid grid-cols-2 gap-3">
-          {cards.slice(0, 2).map((card, i) => (
+          {cards.map((card, i) => (
             <motion.button
               key={card.label}
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
               whileTap={{ scale: 0.96 }}
               onClick={card.action}
               className="rounded-2xl p-4 flex flex-col justify-between text-left"
@@ -123,24 +127,6 @@ export default function Home() {
             </motion.button>
           ))}
         </div>
-
-        <motion.button
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={cards[2].action}
-          className="w-full rounded-2xl p-4 flex items-center gap-4 text-left"
-          style={{ ...nmRaised, minHeight: 80 }}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={nmInsetSm}>
-            <Store size={19} style={{ color: cards[2].color }} />
-          </div>
-          <div>
-            <p className="font-coolvetica text-[1rem] uppercase leading-none tracking-tight" style={{ color: '#31456a' }}>
-              Marketplace
-            </p>
-            <p className="text-[10px] mt-1" style={{ color: '#8a9bb0' }}>Discover agents</p>
-          </div>
-        </motion.button>
 
       </Page.Main>
 
