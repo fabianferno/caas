@@ -3,7 +3,7 @@
 import { Page } from '@/components/PageLayout';
 import { CaasLogo } from '@/components/CaasLogo';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Check,
   Send,
@@ -95,8 +95,37 @@ export default function Create() {
 
   const [deployState, setDeployState] = useState<DeployState>("idle");
   const [deploySteps, setDeploySteps] = useState<DeployStep[]>(DEPLOY_STEPS.map(s => ({ ...s })));
-  const [deployResult, setDeployResult] = useState<{ tokenId: string; txHashes: string[] } | null>(null);
+  const [deployResult, setDeployResult] = useState<{
+    tokenId: string | null;
+    txHashes: string[];
+    agent?: { id: string; hostPort: number; walletAddress: string; ensName: string; agentkit?: { phase: string; url: string | null } };
+  } | null>(null);
   const [deployError, setDeployError] = useState<string | null>(null);
+
+  // Poll for agentkit URL after successful deploy
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (deployState !== "success" || !deployResult?.agent?.id) return;
+    if (deployResult.agent.agentkit?.url) return; // already have URL
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/agent/agentkit-status?agentId=${deployResult.agent!.id}`);
+        const data = await res.json();
+        if (data.url) {
+          setDeployResult(prev => prev ? {
+            ...prev,
+            agent: prev.agent ? { ...prev.agent, agentkit: { phase: data.phase, url: data.url } } : prev.agent,
+          } : prev);
+          if (pollRef.current) clearInterval(pollRef.current);
+        }
+      } catch { /* ignore */ }
+    };
+
+    poll(); // immediate first check
+    pollRef.current = setInterval(poll, 3000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [deployState, deployResult?.agent?.id, deployResult?.agent?.agentkit?.url]);
 
   const goNext = () => { if (step < 6) { setDir(1);  setStep(s => s + 1); } };
   const goPrev = () => { if (step > 1) { setDir(-1); setStep(s => s - 1); } };
@@ -190,7 +219,11 @@ export default function Create() {
             if (idx + 1 < DEPLOY_STEPS.length) setStepStatus(idx + 1, "in_progress");
           }
           if (event.done) {
-            setDeployResult({ tokenId: event.tokenId as string, txHashes: event.txHashes as string[] });
+            setDeployResult({
+              tokenId: (event.tokenId as string) ?? null,
+              txHashes: (event.txHashes as string[]) ?? [],
+              agent: event.agent as any,
+            });
             setDeployState("success");
           }
         }
@@ -756,17 +789,74 @@ export default function Create() {
                         </span>
                         <p className="font-bold text-[15px]" style={{ color: '#31456a' }}>Agent deployed</p>
                         <p className="text-[12px] font-mono" style={{ color: '#8a9bb0' }}>{agentName}.caas.eth</p>
-                        <p className="text-[11px] font-mono mt-0.5" style={{ color: '#b3b7bd' }}>INFT #{deployResult.tokenId}</p>
+                        {deployResult.agent?.walletAddress && (
+                          <p className="text-[11px] font-mono mt-0.5" style={{ color: '#b3b7bd' }}>
+                            {deployResult.agent.walletAddress.slice(0, 6)}...{deployResult.agent.walletAddress.slice(-4)}
+                          </p>
+                        )}
+                        {deployResult.tokenId && (
+                          <p className="text-[11px] font-mono mt-0.5" style={{ color: '#b3b7bd' }}>INFT #{deployResult.tokenId}</p>
+                        )}
                       </div>
-                      <a
-                        href={`https://chainscan-galileo.0g.ai/tx/${deployResult.txHashes[0]}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full h-11 rounded-xl font-semibold text-[13px] flex items-center justify-center"
-                        style={nmRaisedSm}
-                      >
-                        View on 0G Explorer
-                      </a>
+
+                      {/* World ID Agent Registration */}
+                      {deployResult.agent?.agentkit?.url ? (
+                        <a
+                          href={deployResult.agent.agentkit.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full h-12 rounded-xl font-semibold text-[13px] flex items-center justify-center gap-2"
+                          style={nmBtn}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                          Register on World App
+                        </a>
+                      ) : deployResult.agent?.agentkit?.phase === "failed" || !deployResult.agent?.agentkit ? (
+                        <div className="w-full p-3 rounded-xl text-center" style={nmInsetSm}>
+                          <p className="text-[11px]" style={{ color: '#8a9bb0' }}>
+                            World registration will be available once the agent is fully started.
+                          </p>
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={async () => {
+                              if (!deployResult.agent?.id) return;
+                              try {
+                                const orchUrl = (await fetch("/api/agent/deploy", { method: "HEAD" }).catch(() => null)) ? "" : "";
+                                const res = await fetch(`/api/agent/agentkit-status?agentId=${deployResult.agent.id}`);
+                                const data = await res.json();
+                                if (data.url) {
+                                  setDeployResult(prev => prev ? {
+                                    ...prev,
+                                    agent: prev.agent ? { ...prev.agent, agentkit: { phase: data.phase, url: data.url } } : prev.agent,
+                                  } : prev);
+                                }
+                              } catch { /* ignore */ }
+                            }}
+                            className="mt-2 px-4 py-2 rounded-lg font-semibold text-[12px]"
+                            style={nmRaisedSm}
+                          >
+                            Check Registration Status
+                          </motion.button>
+                        </div>
+                      ) : (
+                        <div className="w-full p-3 rounded-xl text-center" style={nmInsetSm}>
+                          <p className="text-[11px]" style={{ color: '#8a9bb0' }}>
+                            Waiting for World App registration URL...
+                          </p>
+                        </div>
+                      )}
+
+                      {deployResult.txHashes.length > 0 && (
+                        <a
+                          href={`https://chainscan-galileo.0g.ai/tx/${deployResult.txHashes[0]}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full h-11 rounded-xl font-semibold text-[13px] flex items-center justify-center"
+                          style={nmRaisedSm}
+                        >
+                          View on 0G Explorer
+                        </a>
+                      )}
                     </div>
                   )}
 

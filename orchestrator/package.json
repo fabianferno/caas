@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "dockerode": "^4.0.0",
+    "dotenv": "^17.4.0",
     "express": "^5.1.0",
     "viem": "^2.47.10"
   },

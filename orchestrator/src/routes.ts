@@ -15,6 +15,7 @@ import {
   getContainerLogs,
 } from "./docker.js";
 import { startRegistration, getJob } from "./agentkit.js";
+import { writeSoulRecord } from "./ens.js";
 
 export function generateWallet(): { privateKey: string; address: string } {
   const privKeyBytes = randomBytes(32);
@@ -118,6 +119,13 @@ export function createRouter(store: AgentStore, config: OrchestratorConfig): Rou
       };
 
       store.save(record);
+
+      // Write soul to ENS if provided (non-blocking)
+      if (body.soul) {
+        writeSoulRecord(agentEnsName, body.soul, config.deployerPrivateKey, config.ethRpcUrl)
+          .then(() => console.log(`[ens] Soul written for ${agentEnsName}`))
+          .catch((err) => console.error(`[ens] Failed to write soul for ${agentEnsName}:`, err));
+      }
 
       // Launch agentkit registration inside the container (non-blocking).
       // Waits up to 5s for the World App URL, then returns.
