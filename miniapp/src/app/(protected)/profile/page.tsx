@@ -76,6 +76,7 @@ export default function Profile() {
         </div>
         <h1
           className="font-coolvetica text-[2rem] uppercase leading-none tracking-tight"
+          style={{ color: '#e0e5ec', textShadow: '-2px -2px 4px #b3b7bd, 2px 2px 5px rgba(255,255,255,0.95)' }}
         >
           Profile
         </h1>
