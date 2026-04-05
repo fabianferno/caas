@@ -4,8 +4,7 @@ const uri = process.env.MONGODB_URI!;
 if (!uri) throw new Error("MONGODB_URI environment variable is not set");
 
 declare global {
-  // eslint-disable-next-line no-var
-  var _mongoClient: MongoClient | undefined;
+  var _mongoClient: MongoClient | undefined; // eslint-disable-line no-var
 }
 
 let client: MongoClient;
