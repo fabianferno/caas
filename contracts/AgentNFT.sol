@@ -44,7 +44,7 @@ contract AgentNFT is
         _getStorage().nextTokenId = 1;
     }
 
-    function mint(IntelligentData[] calldata data, address to) public returns (uint256 tokenId) {
+    function mint(IntelligentData[] calldata data, address to) public onlyOwner returns (uint256 tokenId) {
         AgentNFTStorage storage s = _getStorage();
         tokenId = s.nextTokenId++;
         _safeMint(to, tokenId);

@@ -149,7 +149,8 @@ export default function Create() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           agentName,
-          ownerAddress: "0x0000000000000000000000000000000000000000",
+          // TODO: replace with user's wallet address from MiniKit
+          ownerAddress: process.env.NEXT_PUBLIC_DEFAULT_OWNER_ADDRESS ?? "0x000000000000000000000000000000000000dEaD",
           soul: soulContent,
           skills: skillsContent,
           config: configContent,
@@ -162,11 +163,14 @@ export default function Create() {
       const reader = response.body.getReader();
       const textDecoder = new TextDecoder();
 
+      let buffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const text = textDecoder.decode(value);
-        for (const line of text.split("\n").filter(l => l.startsWith("data: "))) {
+        buffer += textDecoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines.filter(l => l.startsWith("data: "))) {
           const event = JSON.parse(line.slice(6)) as Record<string, unknown>;
           if (event.error) throw new Error(event.error as string);
           if (event.step && event.status === "done") {

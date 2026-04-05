@@ -65,7 +65,11 @@ export async function uploadEncryptedBlobsToZeroG(
     const memData = new MemData(blobBytes);
     const [result, err] = await indexer.upload(memData, evmRpc, signer);
     if (err !== null) throw new Error(`0G upload failed for ${blob.description}: ${err.message}`);
-    const rootHash = (result as { txHash: string; rootHash: string }).rootHash;
+    const rawHash = (result as { txHash: string; rootHash: string }).rootHash;
+    const rootHash = rawHash.startsWith("0x") ? rawHash : `0x${rawHash}`;
+    if (!/^0x[0-9a-fA-F]{64}$/.test(rootHash)) {
+      throw new Error(`0G rootHash is not a valid bytes32: ${rawHash}`);
+    }
     intelligentData.push({ dataDescription: blob.description, dataHash: rootHash });
   }
 
