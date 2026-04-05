@@ -94,6 +94,30 @@ export async function writeAgentkitRecords(
   }
 }
 
+export async function writeSoulRecord(
+  ensName: string,
+  soul: string,
+  privateKey: string,
+  ethRpcUrl: string,
+): Promise<void> {
+  const toHexKey = (k: string) => (k.startsWith("0x") ? k : `0x${k}`) as `0x${string}`;
+  const account = privateKeyToAccount(toHexKey(privateKey));
+  const publicClient = createPublicClient({ chain: sepolia, transport: http(ethRpcUrl) });
+  const walletClient = createWalletClient({ account, chain: sepolia, transport: http(ethRpcUrl) });
+  const node = namehash(normalize(ensName));
+
+  const hash = await walletClient.writeContract({
+    chain: sepolia,
+    account,
+    address: PUBLIC_RESOLVER,
+    abi: RESOLVER_ABI,
+    functionName: "setText",
+    args: [node, "caas.soul", soul],
+  });
+  await publicClient.waitForTransactionReceipt({ hash });
+  console.log(`[ens] Wrote caas.soul for ${ensName} (${soul.length} chars)`);
+}
+
 export async function readAgentkitRecords(
   ensName: string,
   ethRpcUrl: string,

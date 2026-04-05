@@ -10,21 +10,30 @@ import {
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
-/* ── Shadows ── */
+/* -- Shadows -- */
 const nmRaised   = { background: '#e0e5ec', boxShadow: '6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)' };
 const nmRaisedSm = { background: '#e0e5ec', boxShadow: '4px 4px 12px #b3b7bd, -4px -4px 12px rgba(255,255,255,0.5)' };
 const nmInset    = { background: '#e0e5ec', boxShadow: 'inset 5px 5px 14px #b3b7bd, inset -5px -5px 14px rgba(255,255,255,0.7)' };
 const nmInsetSm  = { background: '#e0e5ec', boxShadow: 'inset 3px 3px 8px #b3b7bd, inset -3px -3px 8px rgba(255,255,255,0.7)' };
 const nmBtn      = { background: '#7b96f5', boxShadow: '6px 6px 16px rgba(80,100,190,0.55), -4px -4px 12px rgba(255,255,255,0.95)', color: '#ffffff' };
 
-const MY_AVATAR = 'https://api.dicebear.com/9.x/lorelei/svg?seed=my-agent&backgroundColor=d1d4f9';
+const avatarUrl = (seed: string, bg: string) =>
+  `https://api.dicebear.com/9.x/lorelei/svg?seed=${seed}&backgroundColor=${bg}`;
+
+interface AgentData {
+  agentName: string;
+  agentEnsName: string;
+  status: string;
+  avatarSeed?: string;
+  avatarBg?: string;
+}
 
 type Msg = { id: string; role: 'user' | 'agent'; text: string };
 
 const REPLIES = [
   "On it. What do you need?",
   "Done. Anything else?",
-  "Understood — I'll take care of that.",
+  "Understood -- I'll take care of that.",
   "Got it. I'll report back when complete.",
   "Sure, give me a moment.",
 ];
@@ -36,6 +45,20 @@ export default function Home() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input,    setInput]    = useState('');
   const [typing,   setTyping]   = useState(false);
+
+  const [agent, setAgent] = useState<AgentData | null>(null);
+
+  useEffect(() => {
+    fetch('/api/agent/list')
+      .then(r => r.json())
+      .then((data: AgentData[]) => { if (data.length > 0) setAgent(data[0]); })
+      .catch(() => {});
+  }, []);
+
+  const agentName = agent?.agentName || 'my-agent';
+  const ensName   = agent?.agentEnsName || `${agentName}.caas.eth`;
+  const agentAvatar = avatarUrl(agent?.avatarSeed || agentName, agent?.avatarBg || 'd1d4f9');
+  const isActive  = agent?.status === 'running';
 
   const openChat = () => {
     setMessages([{ id: '0', role: 'agent', text: "Hey! What do you need me to do?" }]);
@@ -86,7 +109,7 @@ export default function Home() {
             className="w-12 h-12 rounded-2xl overflow-hidden shrink-0"
             style={nmRaisedSm}
           >
-            <img src={MY_AVATAR} alt="my-agent" className="w-full h-full" />
+            <img src={agentAvatar} alt={agentName} className="w-full h-full" />
           </motion.button>
         </div>
       </Page.Header>
@@ -96,21 +119,26 @@ export default function Home() {
         {/* Agent card */}
         <div className="rounded-2xl p-4 flex items-center gap-4" style={nmRaised}>
           <div className="w-14 h-14 rounded-2xl overflow-hidden shrink-0" style={nmInsetSm}>
-            <img src={MY_AVATAR} alt="my-agent" className="w-full h-full" />
+            <img src={agentAvatar} alt={agentName} className="w-full h-full" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-coolvetica text-[1.1rem] uppercase leading-none tracking-tight" style={{ color: '#31456a' }}>
-              my-agent
+              {agentName}
             </p>
-            <p className="text-[10px] font-mono mt-0.5" style={{ color: '#8a9bb0' }}>my-agent.caas.eth</p>
+            <p className="text-[10px] font-mono mt-0.5" style={{ color: '#8a9bb0' }}>{ensName}</p>
             <div className="flex items-center gap-1.5 mt-1.5">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
-              <span className="text-[10px] font-semibold" style={{ color: '#10b981' }}>Active</span>
+              <div className="w-1.5 h-1.5 rounded-full" style={{
+                background: isActive ? '#10b981' : '#ef4444',
+                boxShadow: isActive ? '0 0 6px #10b981' : '0 0 6px #ef4444',
+              }} />
+              <span className="text-[10px] font-semibold" style={{ color: isActive ? '#10b981' : '#ef4444' }}>
+                {isActive ? 'Active' : agent ? 'Offline' : 'No Agent'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* 6 action cards — 3x2 grid */}
+        {/* 6 action cards -- 3x2 grid */}
         <div className="grid grid-cols-2 gap-3">
           {cards.map((card, i) => (
             <motion.button
@@ -136,7 +164,7 @@ export default function Home() {
 
       </Page.Main>
 
-      {/* ── Chat overlay ── */}
+      {/* -- Chat overlay -- */}
       <AnimatePresence>
         {chatOpen && (
           <motion.div
@@ -152,17 +180,22 @@ export default function Home() {
                 <ArrowLeft size={18} style={{ color: '#8a9bb0' }} />
               </motion.button>
               <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0" style={nmInsetSm}>
-                <img src={MY_AVATAR} alt="my-agent" className="w-full h-full" />
+                <img src={agentAvatar} alt={agentName} className="w-full h-full" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-coolvetica text-[1rem] uppercase leading-none tracking-tight" style={{ color: '#31456a' }}>
-                  my-agent
+                  {agentName}
                 </p>
-                <p className="text-[10px] font-mono mt-0.5" style={{ color: '#8a9bb0' }}>my-agent.caas.eth</p>
+                <p className="text-[10px] font-mono mt-0.5" style={{ color: '#8a9bb0' }}>{ensName}</p>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
-                <span className="text-[10px] font-semibold" style={{ color: '#10b981' }}>Online</span>
+                <div className="w-1.5 h-1.5 rounded-full" style={{
+                  background: isActive ? '#10b981' : '#ef4444',
+                  boxShadow: isActive ? '0 0 6px #10b981' : '0 0 6px #ef4444',
+                }} />
+                <span className="text-[10px] font-semibold" style={{ color: isActive ? '#10b981' : '#ef4444' }}>
+                  {isActive ? 'Online' : 'Offline'}
+                </span>
               </div>
             </div>
 
