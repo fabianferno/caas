@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, zeroAddress, type Address } from "viem";
+import { createPublicClient, createWalletClient, http, fallback, zeroAddress, type Address } from "viem";
 import { normalize, namehash, labelhash } from "viem/ens";
 import { sepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
@@ -172,12 +172,24 @@ export function buildSystemPrompt(input: SystemPromptInput): string {
   return parts.join("\n");
 }
 
+const SEPOLIA_FALLBACK_RPCS = [
+  "https://rpc.sepolia.org",
+  "https://eth-sepolia.public.blastapi.io",
+  "https://sepolia.gateway.tenderly.co",
+];
+
+function makeTransport(ethRpcUrl: string) {
+  const urls = [ethRpcUrl, ...SEPOLIA_FALLBACK_RPCS.filter((u) => u !== ethRpcUrl)];
+  return fallback(urls.map((u) => http(u)));
+}
+
 function makeClients(ethRpcUrl: string, privateKey: string) {
   const account = privateKeyToAccount(
     (privateKey.startsWith("0x") ? privateKey : `0x${privateKey}`) as `0x${string}`
   );
-  const publicClient = createPublicClient({ chain: sepolia, transport: http(ethRpcUrl) });
-  const walletClient = createWalletClient({ account, chain: sepolia, transport: http(ethRpcUrl) });
+  const transport = makeTransport(ethRpcUrl);
+  const publicClient = createPublicClient({ chain: sepolia, transport });
+  const walletClient = createWalletClient({ account, chain: sepolia, transport });
   return { account, publicClient, walletClient };
 }
 
@@ -335,7 +347,7 @@ export async function writeAgentSoul(
 }
 
 export async function readENSRecords(ensName: string, ethRpcUrl: string): Promise<SoulData> {
-  const publicClient = createPublicClient({ chain: sepolia, transport: http(ethRpcUrl) });
+  const publicClient = createPublicClient({ chain: sepolia, transport: makeTransport(ethRpcUrl) });
 
   const node = namehash(normalize(ensName));
 
