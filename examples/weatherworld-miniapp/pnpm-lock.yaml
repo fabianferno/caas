@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@world-caas/agent-mini-app':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       '@worldcoin/idkit':
         specifier: 4.0.0-dev.4777311
         version: 4.0.0-dev.4777311(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1193,8 +1193,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@world-caas/agent-mini-app@0.1.0':
-    resolution: {integrity: sha512-1daKg5hG+AkdUWEHM0HguiEAXgtQOWytfs0IRKkA4xCYXs+uR1T5WqxgYgmEYWsn9VNofsIx2vtqprIbloxbrw==}
+  '@world-caas/agent-mini-app@0.1.1':
+    resolution: {integrity: sha512-V/nEmvj23spMDbJIxzIgjzq6JqT17sq4fQ+P6CCEOipI9fOEuzuWRDqcxa9iFe+yHEJBRWgJT2PY/HdslPqYuw==}
     hasBin: true
     peerDependencies:
       express: '>=4.0.0'
@@ -3684,7 +3684,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@world-caas/agent-mini-app@0.1.0':
+  '@world-caas/agent-mini-app@0.1.1':
     dependencies:
       commander: 12.1.0
       js-yaml: 4.1.1
