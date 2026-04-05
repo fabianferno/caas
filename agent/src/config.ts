@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import path from "node:path";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config(); // fallback to .env
@@ -18,6 +19,8 @@ export interface Config {
   allowedUserIds: string[];
   shellAllowlist: string[];
   mcpConfigPath: string;
+  creTemplatesDir: string;
+  creConfiguredDir: string;
   heartbeatInterval: number;
   // Bedrock fallback
   awsAccessKeyId?: string;
@@ -56,6 +59,8 @@ export function loadConfig(): Config {
       .map((s) => s.trim())
       .filter(Boolean),
     mcpConfigPath: process.env.MCP_CONFIG_PATH || "./mcp-servers.json",
+    creTemplatesDir: process.env.CRE_TEMPLATES_DIR || path.resolve(__dirname, "../../workflows/templates"),
+    creConfiguredDir: process.env.CRE_CONFIGURED_DIR || path.resolve(__dirname, "../../workflows/configured"),
     heartbeatInterval: parseInt(
       process.env.HEARTBEAT_INTERVAL || "300000",
       10

@@ -1,0 +1,11 @@
+{
+  "schedule": "*/30 * * * * *",
+  "apiUrl": "https://api.mathjs.org/v4/?expr=2*21",
+  "evms": [
+    {
+      "chainName": "ethereum-testnet-sepolia",
+      "consumerContract": "0x0000000000000000000000000000000000000000",
+      "gasLimit": "500000"
+    }
+  ]
+}

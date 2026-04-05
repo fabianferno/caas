@@ -1,0 +1,19 @@
+{
+  "name": "webhook-listener",
+  "description": "Listen for incoming HTTP requests, call an external API with the payload, and return the result to the caller.",
+  "category": "automation",
+  "trigger": "http",
+  "resultMode": "http-callback",
+  "parameters": {
+    "apiUrl": {
+      "type": "string",
+      "description": "External API endpoint to call with incoming data",
+      "required": true
+    },
+    "apiMethod": {
+      "type": "string",
+      "description": "HTTP method for the external API call (GET or POST)",
+      "default": "GET"
+    }
+  }
+}
