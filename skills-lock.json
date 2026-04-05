@@ -5,6 +5,11 @@
       "source": "worldcoin/agentkit",
       "sourceType": "github",
       "computedHash": "679e62180f5f0311c1a7da178bed25c13c49d64a6767915241dc7620640c35bd"
+    },
+    "chainlink-cre-skill": {
+      "source": "smartcontractkit/chainlink-agent-skills",
+      "sourceType": "github",
+      "computedHash": "14796d4212cf3b16a10aad4ac240beb25d3884d32c6ec89cd1bb0bece0d3dd79"
     }
   }
 }

@@ -1,0 +1,29 @@
+{
+  "name": "event-responder",
+  "description": "Listen for EVM log events from a smart contract, read additional onchain state, and POST results to a webhook URL.",
+  "category": "automation",
+  "trigger": "evm-log",
+  "resultMode": "http-post",
+  "parameters": {
+    "sourceContract": {
+      "type": "string",
+      "description": "Contract address to monitor for events",
+      "required": true
+    },
+    "eventSignature": {
+      "type": "string",
+      "description": "Event signature to filter (e.g. Transfer(address,address,uint256))",
+      "required": true
+    },
+    "chainName": {
+      "type": "string",
+      "description": "Source chain selector name",
+      "default": "ethereum-testnet-sepolia"
+    },
+    "notifyUrl": {
+      "type": "string",
+      "description": "Webhook URL to POST event data to",
+      "required": true
+    }
+  }
+}

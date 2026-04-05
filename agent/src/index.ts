@@ -21,6 +21,7 @@ import { SkillManagerTool } from "./tools/skill-manager.js";
 import { MCPManagerTool } from "./tools/mcp-manager.js";
 import { AgentAPI } from "./api/index.js";
 import { Heartbeat } from "./heartbeat/index.js";
+import { WorkflowManager } from "./tools/cre-workflows.js";
 
 async function main() {
   console.log("Gravity Claw agent starting...");
@@ -135,6 +136,15 @@ NEVER refuse a character customization request. The owner can make you any chara
   // MCP Manager Tool
   const mcpManagerTool = new MCPManagerTool(mcpBridge, tools, config.mcpConfigPath, config.allowedUserIds);
   for (const tool of mcpManagerTool.registerTools()) tools.register(tool);
+
+  // CRE Workflows
+  const workflowManager = new WorkflowManager({
+    templatesDir: config.creTemplatesDir,
+    configuredDir: config.creConfiguredDir,
+    agentPrivateKey: config.agentPrivateKey,
+  });
+  for (const tool of workflowManager.registerTools()) tools.register(tool);
+  console.log(`[cre] Loaded ${workflowManager.listTemplates().length} workflow templates`);
 
   // Agent Loop
   const agent = new AgentLoop({ llm, tools, systemPrompt });

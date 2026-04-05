@@ -1,0 +1,39 @@
+{
+  "name": "price-feed",
+  "description": "Fetch asset price from an HTTP API on a cron schedule, aggregate with median consensus, and write the result onchain to a consumer contract.",
+  "category": "data-feeds",
+  "trigger": "cron",
+  "resultMode": "evm-write",
+  "parameters": {
+    "asset": {
+      "type": "string",
+      "description": "Asset symbol (e.g. ETH, BTC)",
+      "required": true
+    },
+    "apiUrl": {
+      "type": "string",
+      "description": "Price API endpoint that returns a numeric value",
+      "required": true
+    },
+    "cronSchedule": {
+      "type": "string",
+      "description": "Cron expression for trigger schedule",
+      "default": "*/30 * * * * *"
+    },
+    "chainName": {
+      "type": "string",
+      "description": "Target chain selector name",
+      "default": "ethereum-testnet-sepolia"
+    },
+    "consumerContract": {
+      "type": "string",
+      "description": "Consumer contract address (must implement IReceiver)",
+      "required": true
+    },
+    "gasLimit": {
+      "type": "string",
+      "description": "Gas limit for the write transaction",
+      "default": "500000"
+    }
+  }
+}

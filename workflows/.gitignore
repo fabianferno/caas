@@ -1,0 +1,4 @@
+.env
+configured/
+node_modules/
+dist/

@@ -1,0 +1,4 @@
+{
+  "apiUrl": "https://api.mathjs.org/v4/?expr=2*21",
+  "apiMethod": "GET"
+}
