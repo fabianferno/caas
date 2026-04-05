@@ -18,6 +18,7 @@ interface WSMessage {
 export class WebChatChannel implements Channel {
   name = "webchat";
   private port: number;
+  private app: express.Application;
   private server: http.Server | null = null;
   private wss: WebSocketServer | null = null;
   private handler: MessageHandler | null = null;
@@ -25,14 +26,17 @@ export class WebChatChannel implements Channel {
 
   constructor(opts: WebChatChannelOptions) {
     this.port = opts.port;
+    this.app = express();
+    this.app.use(express.json());
+    this.app.get("/health", (_req, res) => { res.json({ status: "ok" }); });
+  }
+
+  getApp(): express.Application {
+    return this.app;
   }
 
   async start(): Promise<void> {
-    const app = express();
-    app.use(express.json());
-    app.get("/health", (_req, res) => { res.json({ status: "ok" }); });
-
-    this.server = http.createServer(app);
+    this.server = http.createServer(this.app);
     this.wss = new WebSocketServer({ server: this.server });
 
     this.wss.on("connection", (ws) => {
@@ -59,9 +63,7 @@ export class WebChatChannel implements Channel {
       });
 
       ws.on("close", () => {
-        if (conversationId) {
-          this.connections.delete(conversationId);
-        }
+        if (conversationId) this.connections.delete(conversationId);
       });
     });
 
