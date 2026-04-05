@@ -1,0 +1,4 @@
+/orchestrator/node_modules
+/orchestrator/data
+/docs
+orchestrator/.env
