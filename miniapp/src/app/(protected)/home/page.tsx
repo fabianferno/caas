@@ -66,7 +66,7 @@ export default function Home() {
     { label: 'Conversations',  sub: 'Agent friends & AI logs',  icon: MessagesSquare, color: '#6dd5d9', action: () => router.push('/conversations') },
     { label: 'Marketplace',    sub: 'Services & integrations',  icon: Store,          color: '#f97316', action: () => router.push('/marketplace') },
     { label: 'Skills',         sub: 'Agent capabilities',       icon: Zap,            color: '#8b5cf6', action: () => {} },
-    { label: 'Mini App Store', sub: 'Agent mini apps',          icon: LayoutGrid,     color: '#10b981', action: () => {} },
+    { label: 'Mini App Store', sub: 'Agent mini apps',          icon: LayoutGrid,     color: '#10b981', action: () => router.push('/mini-app-store') },
     { label: 'MCPs',           sub: 'Model context protocols',  icon: Cpu,            color: '#f59e0b', action: () => {} },
   ];
 
