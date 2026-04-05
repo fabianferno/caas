@@ -1,10 +1,12 @@
 "use client";
 
-import { ArrowRight, Globe, Zap, ShieldCheck } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { walletAuth } from "@/auth/wallet";
 
 const MetallicPaint = dynamic(() => import("@/components/MetallicPaint"), {
   ssr: false,
@@ -13,6 +15,22 @@ const MetallicPaint = dynamic(() => import("@/components/MetallicPaint"), {
 
 export default function Hero() {
   const containerRef = useRef<HTMLElement>(null);
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [isPending, setIsPending] = useState(false);
+
+  const handleLogin = useCallback(async () => {
+    if (isPending) return;
+    if (session) { router.push('/home'); return; }
+    setIsPending(true);
+    try {
+      await walletAuth();
+    } catch (e) {
+      console.error('Login error', e);
+    } finally {
+      setIsPending(false);
+    }
+  }, [isPending, session, router]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -171,13 +189,31 @@ export default function Hero() {
         </div> */}
 
         {/* CTA */}
-        <Link
-          href="/create"
-          className="h-cta group w-full inline-flex items-center justify-center gap-2 font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform text-white nm-btn-accent"
+        <button
+          onClick={handleLogin}
+          disabled={isPending || status === 'loading'}
+          className="h-cta w-full inline-flex items-center justify-center gap-2.5 font-bold py-4 rounded-2xl text-[15px] active:scale-[0.98] transition-transform disabled:opacity-60"
+          style={{ background: '#7b96f5', boxShadow: '6px 6px 16px rgba(80,100,190,0.55), -4px -4px 12px rgba(255,255,255,0.95)', color: '#ffffff' }}
         >
-          Create Your Claw
-          <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+          {isPending ? (
+            <>
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Signing in...
+            </>
+          ) : session ? (
+            <>Open App <ArrowRight size={16} /></>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 shrink-0">
+                <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 110 16A8 8 0 0112 4zm0 2a6 6 0 100 12A6 6 0 0012 6zm0 2a4 4 0 110 8 4 4 0 010-8z"/>
+              </svg>
+              Sign in with World ID
+            </>
+          )}
+        </button>
 
       </div>
     </section>

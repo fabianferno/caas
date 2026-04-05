@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { auth } from "@/auth";
 
 const ORCHESTRATOR_URL = (process.env.ORCHESTRATOR_URL || "http://localhost:4000").replace(/\/+$/, "");
 
@@ -11,6 +12,7 @@ const CONTRACT = process.env.AGENT_NFT_CONTRACT_ADDRESS;
 const HAS_OG_CONFIG = !!(OG_RPC && OG_INDEXER && DEPLOYER_KEY && CONTRACT);
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
   const body = (await req.json()) as {
     agentName: string;
     ownerAddress: string;
@@ -28,10 +30,13 @@ export async function POST(req: NextRequest) {
   };
 
   const {
-    agentName, ownerAddress, soul, skills, config, aesKeyHex,
+    agentName, soul, skills, config, aesKeyHex,
     telegramBotToken, discordBotToken, enableWhatsApp,
     avatarSeed, avatarBg, model, memoryType,
   } = body;
+
+  // Always use the authenticated user's wallet as owner — never trust client-sent ownerAddress
+  const ownerAddress = session?.user?.id ?? body.ownerAddress;
 
   if (!agentName || !soul) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
@@ -119,6 +124,7 @@ export async function POST(req: NextRequest) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             agentName,
+            ownerAddress: ownerAddress || undefined,
             telegramBotToken: telegramBotToken || undefined,
             discordBotToken: discordBotToken || undefined,
             enableWhatsApp: enableWhatsApp || false,

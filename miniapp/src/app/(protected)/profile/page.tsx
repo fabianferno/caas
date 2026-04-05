@@ -3,7 +3,8 @@
 import { Page } from '@/components/PageLayout';
 import { CaasLogo } from '@/components/CaasLogo';
 import { motion } from 'framer-motion';
-import { Settings, ExternalLink, Copy, Check, RefreshCw, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { LogOut, ExternalLink, Copy, Check, RefreshCw, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 
 const nmRaised   = { background: '#e0e5ec', boxShadow: '6px 6px 16px #b3b7bd, -6px -6px 16px rgba(255,255,255,0.5)' };
@@ -112,10 +113,11 @@ export default function Profile() {
             </motion.button>
             <motion.button
               whileTap={{ scale: 0.95 }}
+              onClick={() => signOut({ callbackUrl: '/' })}
               className="w-10 h-10 rounded-2xl flex items-center justify-center"
               style={nmRaisedSm}
             >
-              <Settings size={18} style={{ color: '#8a9bb0' }} />
+              <LogOut size={16} style={{ color: '#ef4444' }} />
             </motion.button>
           </div>
         </div>
