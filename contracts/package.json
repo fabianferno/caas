@@ -5,7 +5,8 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "deploy:0g": "hardhat run scripts/deploy.ts --network 0g-testnet"
+    "deploy:0g": "hardhat run scripts/deploy.ts --network 0g-testnet",
+    "demo:mint": "hardhat run scripts/demo-mint.ts --network 0g-testnet"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

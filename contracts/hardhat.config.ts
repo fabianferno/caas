@@ -29,9 +29,9 @@ const config: HardhatUserConfig = {
   networks: {
     "0g-testnet": {
       url: process.env.OG_RPC_URL ?? "https://evmrpc-testnet.0g.ai",
-      chainId: 16600,
-      accounts: process.env.OG_DEPLOYER_PRIVATE_KEY
-        ? [process.env.OG_DEPLOYER_PRIVATE_KEY]
+      chainId: 16602,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY
+        ? [process.env.DEPLOYER_PRIVATE_KEY]
         : [],
     },
   },
